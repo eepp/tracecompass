@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension
+         point="org.eclipse.ui.views">
+      <view
+            allowMultiple="true"
+            class="org.eclipse.tracecompass.internal.analysis.realtime.ui.periods.view.PeriodTableView"
+            id="org.eclipse.tracecompass.analysis.realtime.view.periods"
+            name="Period View"
+            restorable="true">
+      </view>
+   </extension>
+   <extension
+         point="org.eclipse.linuxtools.tmf.core.analysis">
+      <output
+            class="org.eclipse.tracecompass.tmf.ui.analysis.TmfAnalysisViewOutput"
+            id="org.eclipse.tracecompass.analysis.realtime.view.periods">
+         <analysisModuleClass
+               class="org.eclipse.tracecompass.analysis.realtime.core.periods.PeriodAnalysisModule">
+         </analysisModuleClass>
+      </output>
+   </extension>
+
+</plugin>

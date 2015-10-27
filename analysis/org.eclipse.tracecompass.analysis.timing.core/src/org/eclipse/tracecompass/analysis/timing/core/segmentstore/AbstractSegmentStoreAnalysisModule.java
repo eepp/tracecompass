@@ -224,7 +224,7 @@ public abstract class AbstractSegmentStoreAnalysisModule extends TmfAbstractAnal
     /**
      * Abstract event request to fill a a segment store
      */
-    protected static abstract class AbstractSegmentStoreAnalysisRequest extends TmfEventRequest {
+    public static abstract class AbstractSegmentStoreAnalysisRequest extends TmfEventRequest {
 
         private final ISegmentStore<ISegment> fFullLatencyStore;
 
