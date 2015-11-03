@@ -101,6 +101,7 @@ public class TmfXmlPatternSegment implements ISegment {
      * Get the name of pattern segment
      * @return The name
      */
+    @Override
     public String getName() {
         return fSegmentName;
     }

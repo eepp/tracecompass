@@ -92,6 +92,7 @@ public class SystemCall implements ISegment {
      *
      * @return Name
      */
+    @Override
     public String getName() {
         return fInfo.fName;
     }

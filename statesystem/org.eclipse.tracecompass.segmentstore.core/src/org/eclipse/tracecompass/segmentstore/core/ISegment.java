@@ -53,4 +53,6 @@ public interface ISegment extends Serializable, Comparable<@NonNull ISegment> {
     default long getLength() {
         return getEnd() - getStart();
     }
+
+    String getName();
 }
