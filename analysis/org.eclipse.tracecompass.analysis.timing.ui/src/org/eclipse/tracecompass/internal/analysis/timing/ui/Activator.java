@@ -26,6 +26,7 @@ public class Activator extends AbstractUIPlugin {
 
     // The shared instance
     private static Activator plugin;
+//    private static final SegmentMarkerFactory SYSCALL_MARKER_FACTORY = new SegmentMarkerFactory();
 
     /**
      * The constructor
@@ -37,11 +38,14 @@ public class Activator extends AbstractUIPlugin {
     public void start(BundleContext context) throws Exception {
         super.start(context);
         plugin = this;
+//        TmfTraceAdapterManager.registerFactory(SYSCALL_MARKER_FACTORY, IKernelTrace.class);
     }
+
 
     @Override
     public void stop(BundleContext context) throws Exception {
         plugin = null;
+//        TmfTraceAdapterManager.unregisterFactory(SYSCALL_MARKER_FACTORY);
         super.stop(context);
     }
 
