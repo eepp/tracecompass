@@ -24,19 +24,20 @@ import java.util.Random;
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.tracecompass.internal.tmf.core.statesystem.mipmap.AbstractTmfMipmapStateProvider;
 import org.eclipse.tracecompass.internal.tmf.core.statesystem.mipmap.TmfStateSystemOperations;
-import org.eclipse.tracecompass.statesystem.core.ITmfStateSystemBuilder;
-import org.eclipse.tracecompass.statesystem.core.StateSystemFactory;
-import org.eclipse.tracecompass.statesystem.core.backend.IStateHistoryBackend;
-import org.eclipse.tracecompass.statesystem.core.backend.StateHistoryBackendFactory;
-import org.eclipse.tracecompass.statesystem.core.exceptions.AttributeNotFoundException;
-import org.eclipse.tracecompass.statesystem.core.exceptions.StateSystemDisposedException;
-import org.eclipse.tracecompass.statesystem.core.exceptions.StateValueTypeException;
-import org.eclipse.tracecompass.statesystem.core.exceptions.TimeRangeException;
-import org.eclipse.tracecompass.statesystem.core.interval.ITmfStateInterval;
-import org.eclipse.tracecompass.statesystem.core.statevalue.ITmfStateValue.Type;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEvent;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import ca.polymtl.dorsal.statesys.ITmfStateSystemBuilder;
+import ca.polymtl.dorsal.statesys.StateSystemFactory;
+import ca.polymtl.dorsal.statesys.backend.IStateHistoryBackend;
+import ca.polymtl.dorsal.statesys.backend.StateHistoryBackendFactory;
+import ca.polymtl.dorsal.statesys.exceptions.AttributeNotFoundException;
+import ca.polymtl.dorsal.statesys.exceptions.StateSystemDisposedException;
+import ca.polymtl.dorsal.statesys.exceptions.StateValueTypeException;
+import ca.polymtl.dorsal.statesys.exceptions.TimeRangeException;
+import ca.polymtl.dorsal.statesys.interval.ITmfStateInterval;
+import ca.polymtl.dorsal.statesys.statevalue.ITmfStateValue.Type;
 
 /**
  * @author Jean-Christian Kouamé

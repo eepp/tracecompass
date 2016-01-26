@@ -23,9 +23,6 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.Nullable;
-import org.eclipse.tracecompass.statesystem.core.ITmfStateSystem;
-import org.eclipse.tracecompass.statesystem.core.exceptions.StateSystemDisposedException;
-import org.eclipse.tracecompass.statesystem.core.interval.ITmfStateInterval;
 import org.eclipse.tracecompass.tmf.core.signal.TmfSignalHandler;
 import org.eclipse.tracecompass.tmf.core.signal.TmfTraceClosedSignal;
 import org.eclipse.tracecompass.tmf.core.trace.ITmfTrace;
@@ -38,6 +35,10 @@ import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.TimeGraphEntry;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
+
+import ca.polymtl.dorsal.statesys.ITmfStateSystem;
+import ca.polymtl.dorsal.statesys.exceptions.StateSystemDisposedException;
+import ca.polymtl.dorsal.statesys.interval.ITmfStateInterval;
 
 /**
  * An abstract time graph view where each entry's time event list is populated
@@ -231,6 +232,7 @@ public abstract class AbstractStateSystemTimeGraphView extends AbstractTimeGraph
      *            the state system
      *
      * @return the entry list map
+     * @since 2.0
      */
     protected List<TimeGraphEntry> getEntryList(ITmfStateSystem ss) {
         synchronized (fSSEntryListMap) {
@@ -247,6 +249,7 @@ public abstract class AbstractStateSystemTimeGraphView extends AbstractTimeGraph
      *            the state system
      * @param list
      *            the list of time graph entries
+     * @since 2.0
      */
     protected void putEntryList(ITmfTrace trace, ITmfStateSystem ss, List<TimeGraphEntry> list) {
         super.putEntryList(trace, list);
@@ -265,6 +268,7 @@ public abstract class AbstractStateSystemTimeGraphView extends AbstractTimeGraph
      *            the state system
      * @param list
      *            the list of time graph entries to add
+     * @since 2.0
      */
     protected void addToEntryList(ITmfTrace trace, ITmfStateSystem ss, List<TimeGraphEntry> list) {
         super.addToEntryList(trace, list);
@@ -288,6 +292,7 @@ public abstract class AbstractStateSystemTimeGraphView extends AbstractTimeGraph
      *            the state system
      * @param list
      *            the list of time graph entries to remove
+     * @since 2.0
      */
     protected void removeFromEntryList(ITmfTrace trace, ITmfStateSystem ss, List<TimeGraphEntry> list) {
         super.removeFromEntryList(trace, list);
@@ -329,6 +334,7 @@ public abstract class AbstractStateSystemTimeGraphView extends AbstractTimeGraph
      *            The progress monitor
      * @param handler
      *            The query handler
+     * @since 2.0
      */
     protected void queryFullStates(ITmfStateSystem ss, long start, long end, long resolution,
             @NonNull IProgressMonitor monitor, @NonNull IQueryHandler handler) {
@@ -374,6 +380,7 @@ public abstract class AbstractStateSystemTimeGraphView extends AbstractTimeGraph
      * @param monitor
      *            A progress monitor
      * @return The list of time graph events
+     * @since 2.0
      */
     protected abstract @Nullable List<ITimeEvent> getEventList(@NonNull TimeGraphEntry tgentry, ITmfStateSystem ss,
             @NonNull List<List<ITmfStateInterval>> fullStates, @Nullable List<ITmfStateInterval> prevFullState, @NonNull IProgressMonitor monitor);

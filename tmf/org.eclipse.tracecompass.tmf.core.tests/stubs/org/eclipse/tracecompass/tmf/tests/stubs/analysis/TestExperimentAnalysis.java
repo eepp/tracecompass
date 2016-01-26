@@ -18,16 +18,17 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.eclipse.jdt.annotation.NonNull;
-import org.eclipse.tracecompass.statesystem.core.ITmfStateSystemBuilder;
-import org.eclipse.tracecompass.statesystem.core.exceptions.AttributeNotFoundException;
-import org.eclipse.tracecompass.statesystem.core.exceptions.StateValueTypeException;
-import org.eclipse.tracecompass.statesystem.core.exceptions.TimeRangeException;
-import org.eclipse.tracecompass.statesystem.core.statevalue.TmfStateValue;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEvent;
 import org.eclipse.tracecompass.tmf.core.statesystem.AbstractTmfStateProvider;
 import org.eclipse.tracecompass.tmf.core.statesystem.ITmfStateProvider;
 import org.eclipse.tracecompass.tmf.core.statesystem.TmfStateSystemAnalysisModule;
 import org.eclipse.tracecompass.tmf.core.trace.ITmfTrace;
+
+import ca.polymtl.dorsal.statesys.ITmfStateSystemBuilder;
+import ca.polymtl.dorsal.statesys.exceptions.AttributeNotFoundException;
+import ca.polymtl.dorsal.statesys.exceptions.StateValueTypeException;
+import ca.polymtl.dorsal.statesys.exceptions.TimeRangeException;
+import ca.polymtl.dorsal.statesys.statevalue.TmfStateValue;
 
 /**
  * Stubs for experiment analysis. This analysis is a state system analysis that

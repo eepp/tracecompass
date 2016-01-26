@@ -17,13 +17,6 @@ import java.util.List;
 
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.tracecompass.internal.tmf.analysis.xml.core.Activator;
-import org.eclipse.tracecompass.statesystem.core.ITmfStateSystem;
-import org.eclipse.tracecompass.statesystem.core.ITmfStateSystemBuilder;
-import org.eclipse.tracecompass.statesystem.core.exceptions.AttributeNotFoundException;
-import org.eclipse.tracecompass.statesystem.core.exceptions.StateValueTypeException;
-import org.eclipse.tracecompass.statesystem.core.exceptions.TimeRangeException;
-import org.eclipse.tracecompass.statesystem.core.statevalue.ITmfStateValue;
-import org.eclipse.tracecompass.statesystem.core.statevalue.TmfStateValue;
 import org.eclipse.tracecompass.tmf.analysis.xml.core.model.ITmfXmlModelFactory;
 import org.eclipse.tracecompass.tmf.analysis.xml.core.model.ITmfXmlStateAttribute;
 import org.eclipse.tracecompass.tmf.analysis.xml.core.model.TmfXmlStateValue;
@@ -32,6 +25,14 @@ import org.eclipse.tracecompass.tmf.analysis.xml.core.module.XmlUtils;
 import org.eclipse.tracecompass.tmf.analysis.xml.core.stateprovider.TmfXmlStrings;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEvent;
 import org.w3c.dom.Element;
+
+import ca.polymtl.dorsal.statesys.ITmfStateSystem;
+import ca.polymtl.dorsal.statesys.ITmfStateSystemBuilder;
+import ca.polymtl.dorsal.statesys.exceptions.AttributeNotFoundException;
+import ca.polymtl.dorsal.statesys.exceptions.StateValueTypeException;
+import ca.polymtl.dorsal.statesys.exceptions.TimeRangeException;
+import ca.polymtl.dorsal.statesys.statevalue.ITmfStateValue;
+import ca.polymtl.dorsal.statesys.statevalue.TmfStateValue;
 
 /**
  * Implements a state value in a read write mode. See {@link TmfXmlStateValue}
@@ -82,6 +83,9 @@ public class TmfXmlReadWriteStateValue extends TmfXmlStateValue {
         super(modelFactory, node, container, attributes, eventField);
     }
 
+    /**
+     * @since 2.0
+     */
     @Override
     protected @Nullable ITmfStateSystemBuilder getStateSystem() {
         return (ITmfStateSystemBuilder) super.getStateSystem();

@@ -19,10 +19,11 @@ import java.util.List;
 import java.util.Map;
 
 import org.eclipse.jdt.annotation.NonNull;
-import org.eclipse.tracecompass.statesystem.core.ITmfStateSystem;
-import org.eclipse.tracecompass.statesystem.core.exceptions.AttributeNotFoundException;
-import org.eclipse.tracecompass.statesystem.core.exceptions.StateSystemDisposedException;
-import org.eclipse.tracecompass.statesystem.core.interval.ITmfStateInterval;
+
+import ca.polymtl.dorsal.statesys.ITmfStateSystem;
+import ca.polymtl.dorsal.statesys.exceptions.AttributeNotFoundException;
+import ca.polymtl.dorsal.statesys.exceptions.StateSystemDisposedException;
+import ca.polymtl.dorsal.statesys.interval.ITmfStateInterval;
 
 /**
  * Implementation of ITmfStatistics which uses a state history for storing its
@@ -60,6 +61,7 @@ public class TmfStateStatistics implements ITmfStatistics {
      *            The state system containing the "totals" information
      * @param eventTypes
      *            The state system containing the "event types" information
+     * @since 2.0
      */
     public TmfStateStatistics(@NonNull ITmfStateSystem totals, @NonNull ITmfStateSystem eventTypes) {
         this.totalsStats = totals;
@@ -70,6 +72,7 @@ public class TmfStateStatistics implements ITmfStatistics {
      * Return the state system containing the "totals" values
      *
      * @return The "totals" state system
+     * @since 2.0
      */
     public ITmfStateSystem getTotalsSS() {
         return totalsStats;
@@ -79,6 +82,7 @@ public class TmfStateStatistics implements ITmfStatistics {
      * Return the state system containing the "event types" values
      *
      * @return The "event types" state system
+     * @since 2.0
      */
     public ITmfStateSystem getEventTypesSS() {
         return typesStats;

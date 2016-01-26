@@ -13,7 +13,6 @@ Require-Bundle: org.eclipse.ui,
  com.google.guava,
  org.eclipse.tracecompass.analysis.graph.core,
  org.eclipse.tracecompass.common.core,
- org.eclipse.tracecompass.statesystem.core,
  org.eclipse.tracecompass.tmf.core,
  org.eclipse.tracecompass.tmf.ui,
  org.eclipse.core.resources;bundle-version="3.10.1"

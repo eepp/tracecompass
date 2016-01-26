@@ -13,9 +13,10 @@
 package org.eclipse.tracecompass.tmf.ui.views.callstack;
 
 import org.eclipse.jdt.annotation.NonNull;
-import org.eclipse.tracecompass.statesystem.core.ITmfStateSystem;
 import org.eclipse.tracecompass.tmf.core.trace.ITmfTrace;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.TimeGraphEntry;
+
+import ca.polymtl.dorsal.statesys.ITmfStateSystem;
 
 /**
  * An entry, or row, in the Call Stack view
@@ -62,6 +63,7 @@ public class CallStackEntry extends TimeGraphEntry {
      *            The trace that this view is talking about
      * @param ss
      *            The call stack state system
+     * @since 2.0
      */
     public CallStackEntry(String name, int quark, int stackLevel, ITmfTrace trace, @NonNull ITmfStateSystem ss) {
         super(name, 0, 0);
@@ -177,6 +179,7 @@ public class CallStackEntry extends TimeGraphEntry {
      * Retrieve the call stack state system associated with this entry.
      *
      * @return The call stack state system
+     * @since 2.0
      */
     public @NonNull ITmfStateSystem getStateSystem() {
         return fSS;

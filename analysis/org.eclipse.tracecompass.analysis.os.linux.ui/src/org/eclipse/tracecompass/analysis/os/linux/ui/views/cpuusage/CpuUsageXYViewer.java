@@ -24,11 +24,12 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.tracecompass.analysis.os.linux.core.cpuusage.KernelCpuUsageAnalysis;
 import org.eclipse.tracecompass.internal.analysis.os.linux.ui.Activator;
-import org.eclipse.tracecompass.statesystem.core.ITmfStateSystem;
-import org.eclipse.tracecompass.statesystem.core.exceptions.StateValueTypeException;
 import org.eclipse.tracecompass.tmf.core.trace.ITmfTrace;
 import org.eclipse.tracecompass.tmf.core.trace.TmfTraceUtils;
 import org.eclipse.tracecompass.tmf.ui.viewers.xycharts.linecharts.TmfCommonXLineChartViewer;
+
+import ca.polymtl.dorsal.statesys.ITmfStateSystem;
+import ca.polymtl.dorsal.statesys.exceptions.StateValueTypeException;
 
 /**
  * CPU usage viewer with XY line chart. It displays the total CPU usage and that

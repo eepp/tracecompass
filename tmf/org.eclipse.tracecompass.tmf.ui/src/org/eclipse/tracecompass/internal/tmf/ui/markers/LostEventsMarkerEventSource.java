@@ -25,11 +25,7 @@ import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.RGBA;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.tracecompass.internal.tmf.ui.Messages;
-import org.eclipse.tracecompass.statesystem.core.ITmfStateSystem;
-import org.eclipse.tracecompass.statesystem.core.StateSystemUtils;
-import org.eclipse.tracecompass.statesystem.core.exceptions.AttributeNotFoundException;
-import org.eclipse.tracecompass.statesystem.core.exceptions.StateSystemDisposedException;
-import org.eclipse.tracecompass.statesystem.core.interval.ITmfStateInterval;
+import org.eclipse.tracecompass.tmf.core.statesystem.TmfStateSystemUtils;
 import org.eclipse.tracecompass.tmf.core.statistics.TmfStateStatistics.Attributes;
 import org.eclipse.tracecompass.tmf.core.statistics.TmfStatisticsEventTypesModule;
 import org.eclipse.tracecompass.tmf.core.statistics.TmfStatisticsModule;
@@ -38,6 +34,11 @@ import org.eclipse.tracecompass.tmf.core.trace.TmfTraceUtils;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.IMarkerEvent;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.IMarkerEventSource;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.MarkerEvent;
+
+import ca.polymtl.dorsal.statesys.ITmfStateSystem;
+import ca.polymtl.dorsal.statesys.exceptions.AttributeNotFoundException;
+import ca.polymtl.dorsal.statesys.exceptions.StateSystemDisposedException;
+import ca.polymtl.dorsal.statesys.interval.ITmfStateInterval;
 
 /**
  * Marker event source for lost events.
@@ -94,7 +95,7 @@ public class LostEventsMarkerEventSource implements IMarkerEventSource {
                 /* Update end to ensure that the next marker is included. */
                 long nextStartTime = ss.querySingleState(end, lostEventsQuark).getEndTime() + 1;
                 end = Math.min(nextStartTime, ss.getCurrentEndTime());
-                List<ITmfStateInterval> intervals = StateSystemUtils.queryHistoryRange(ss, lostEventsQuark, start, end, resolution, monitor);
+                List<ITmfStateInterval> intervals = TmfStateSystemUtils.queryHistoryRange(ss, lostEventsQuark, start, end, resolution, monitor);
                 for (ITmfStateInterval interval : intervals) {
                     if (interval.getStateValue().isNull()) {
                         continue;

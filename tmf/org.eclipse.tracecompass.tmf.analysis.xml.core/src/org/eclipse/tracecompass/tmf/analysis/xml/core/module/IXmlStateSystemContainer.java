@@ -13,8 +13,9 @@
 package org.eclipse.tracecompass.tmf.analysis.xml.core.module;
 
 import org.eclipse.jdt.annotation.NonNull;
-import org.eclipse.tracecompass.statesystem.core.ITmfStateSystem;
 import org.eclipse.tracecompass.tmf.analysis.xml.core.model.TmfXmlLocation;
+
+import ca.polymtl.dorsal.statesys.ITmfStateSystem;
 
 /**
  * Interface that all XML defined objects who provide, use or contain state
@@ -40,6 +41,7 @@ public interface IXmlStateSystemContainer extends ITmfXmlTopLevelElement {
      * Get the state system managed by this XML object
      *
      * @return The state system
+     * @since 2.0
      */
     ITmfStateSystem getStateSystem();
 

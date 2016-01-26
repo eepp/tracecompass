@@ -19,9 +19,6 @@ import java.util.List;
 
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.tracecompass.internal.tmf.analysis.xml.ui.TmfXmlUiStrings;
-import org.eclipse.tracecompass.statesystem.core.ITmfStateSystem;
-import org.eclipse.tracecompass.statesystem.core.StateSystemUtils;
-import org.eclipse.tracecompass.statesystem.core.interval.ITmfStateInterval;
 import org.eclipse.tracecompass.tmf.analysis.xml.core.model.ITmfXmlModelFactory;
 import org.eclipse.tracecompass.tmf.analysis.xml.core.model.ITmfXmlStateAttribute;
 import org.eclipse.tracecompass.tmf.analysis.xml.core.model.TmfXmlLocation;
@@ -32,6 +29,10 @@ import org.eclipse.tracecompass.tmf.core.trace.ITmfTrace;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.ITimeEvent;
 import org.eclipse.tracecompass.tmf.ui.widgets.timegraph.model.TimeGraphEntry;
 import org.w3c.dom.Element;
+
+import ca.polymtl.dorsal.statesys.ITmfStateSystem;
+import ca.polymtl.dorsal.statesys.StateSystemUtils;
+import ca.polymtl.dorsal.statesys.interval.ITmfStateInterval;
 
 /**
  * An XML-defined entry, or row, to display in the XML state system view
@@ -89,6 +90,7 @@ public class XmlEntry extends TimeGraphEntry implements IXmlStateSystemContainer
      *            The XML element describing this entry. This element will be
      *            used to determine, if available, the parent, ID, name and
      *            other display option of this entry
+     * @since 2.0
      */
     public XmlEntry(int baseQuark, int displayQuark, ITmfTrace trace, String name, long startTime, long endTime, EntryDisplayType type, @NonNull ITmfStateSystem ss, Element entryElement) {
         super(name, startTime, endTime);
@@ -137,6 +139,7 @@ public class XmlEntry extends TimeGraphEntry implements IXmlStateSystemContainer
      *            The exec_name of this entry
      * @param ss
      *            The state system this entry belongs to
+     * @since 2.0
      */
     public XmlEntry(int baseQuark, ITmfTrace trace, String name, @NonNull ITmfStateSystem ss) {
         super(name, ss.getStartTime(), ss.getCurrentEndTime());
@@ -250,6 +253,7 @@ public class XmlEntry extends TimeGraphEntry implements IXmlStateSystemContainer
      *
      * @return The state system, or <code>null</code> if the state system can't
      *         be found.
+     * @since 2.0
      */
     @Override
     @NonNull

@@ -12,8 +12,8 @@
 
 package org.eclipse.tracecompass.analysis.os.linux.core.kernelanalysis;
 
-import org.eclipse.tracecompass.statesystem.core.statevalue.ITmfStateValue;
-import org.eclipse.tracecompass.statesystem.core.statevalue.TmfStateValue;
+import ca.polymtl.dorsal.statesys.statevalue.ITmfStateValue;
+import ca.polymtl.dorsal.statesys.statevalue.TmfStateValue;
 
 /**
  * State values that are used in the kernel event handler. It's much better to

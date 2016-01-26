@@ -13,8 +13,9 @@
 package org.eclipse.tracecompass.tmf.core.statesystem;
 
 import org.eclipse.jdt.annotation.Nullable;
-import org.eclipse.tracecompass.statesystem.core.ITmfStateSystem;
 import org.eclipse.tracecompass.tmf.core.analysis.IAnalysisModule;
+
+import ca.polymtl.dorsal.statesys.ITmfStateSystem;
 
 /**
  * Interface for analysis modules providing state systems.
@@ -30,6 +31,7 @@ public interface ITmfAnalysisModuleWithStateSystems extends IAnalysisModule {
      *            The ID of the state system
      * @return The state system corresponding to the given ID, null if there is
      *         no match.
+     * @since 2.0
      */
     @Nullable ITmfStateSystem getStateSystem(String id);
 

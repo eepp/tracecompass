@@ -22,13 +22,15 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.tracecompass.common.core.NonNullUtils;
-import org.eclipse.tracecompass.statesystem.core.ITmfStateSystem;
-import org.eclipse.tracecompass.statesystem.core.StateSystemUtils;
-import org.eclipse.tracecompass.statesystem.core.exceptions.AttributeNotFoundException;
-import org.eclipse.tracecompass.statesystem.core.exceptions.StateSystemDisposedException;
-import org.eclipse.tracecompass.statesystem.core.exceptions.TimeRangeException;
-import org.eclipse.tracecompass.statesystem.core.interval.ITmfStateInterval;
-import org.eclipse.tracecompass.statesystem.core.statevalue.ITmfStateValue;
+import org.eclipse.tracecompass.tmf.core.statesystem.TmfStateSystemUtils;
+
+import ca.polymtl.dorsal.statesys.ITmfStateSystem;
+import ca.polymtl.dorsal.statesys.StateSystemUtils;
+import ca.polymtl.dorsal.statesys.exceptions.AttributeNotFoundException;
+import ca.polymtl.dorsal.statesys.exceptions.StateSystemDisposedException;
+import ca.polymtl.dorsal.statesys.exceptions.TimeRangeException;
+import ca.polymtl.dorsal.statesys.interval.ITmfStateInterval;
+import ca.polymtl.dorsal.statesys.statevalue.ITmfStateValue;
 
 /**
  * Information provider utility class that retrieves thread-related information
@@ -251,7 +253,7 @@ public final class KernelThreadInformationProvider {
         try {
             int threadQuark = ss.getQuarkAbsolute(Attributes.THREADS, threadId.toString());
             int statusQuark = ss.getQuarkRelative(threadQuark, Attributes.STATUS);
-            List<ITmfStateInterval> statusIntervals = StateSystemUtils.queryHistoryRange(ss, statusQuark, Math.max(start, ss.getStartTime()), Math.min(end - 1, ss.getCurrentEndTime()), resolution, monitor);
+            List<ITmfStateInterval> statusIntervals = TmfStateSystemUtils.queryHistoryRange(ss, statusQuark, Math.max(start, ss.getStartTime()), Math.min(end - 1, ss.getCurrentEndTime()), resolution, monitor);
             return statusIntervals;
         } catch (AttributeNotFoundException | StateSystemDisposedException | TimeRangeException e) {
         }

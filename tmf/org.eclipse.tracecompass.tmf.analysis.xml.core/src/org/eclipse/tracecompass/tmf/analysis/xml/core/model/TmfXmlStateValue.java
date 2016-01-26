@@ -18,12 +18,6 @@ import java.util.List;
 
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.Nullable;
-import org.eclipse.tracecompass.statesystem.core.ITmfStateSystem;
-import org.eclipse.tracecompass.statesystem.core.exceptions.AttributeNotFoundException;
-import org.eclipse.tracecompass.statesystem.core.exceptions.StateValueTypeException;
-import org.eclipse.tracecompass.statesystem.core.exceptions.TimeRangeException;
-import org.eclipse.tracecompass.statesystem.core.statevalue.ITmfStateValue;
-import org.eclipse.tracecompass.statesystem.core.statevalue.TmfStateValue;
 import org.eclipse.tracecompass.tmf.analysis.xml.core.module.IXmlStateSystemContainer;
 import org.eclipse.tracecompass.tmf.analysis.xml.core.stateprovider.TmfXmlStrings;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEvent;
@@ -31,6 +25,13 @@ import org.eclipse.tracecompass.tmf.core.event.ITmfEventField;
 import org.eclipse.tracecompass.tmf.core.event.aspect.TmfCpuAspect;
 import org.eclipse.tracecompass.tmf.core.trace.TmfTraceUtils;
 import org.w3c.dom.Element;
+
+import ca.polymtl.dorsal.statesys.ITmfStateSystem;
+import ca.polymtl.dorsal.statesys.exceptions.AttributeNotFoundException;
+import ca.polymtl.dorsal.statesys.exceptions.StateValueTypeException;
+import ca.polymtl.dorsal.statesys.exceptions.TimeRangeException;
+import ca.polymtl.dorsal.statesys.statevalue.ITmfStateValue;
+import ca.polymtl.dorsal.statesys.statevalue.TmfStateValue;
 
 /**
  * This Class implements a State Value in the XML-defined state system, along
@@ -178,6 +179,7 @@ public abstract class TmfXmlStateValue implements ITmfXmlStateValue {
      * Get the state system associated with this value's container
      *
      * @return The state system associated with the state system container
+     * @since 2.0
      */
     protected @Nullable ITmfStateSystem getStateSystem() {
         return fContainer.getStateSystem();
@@ -208,6 +210,7 @@ public abstract class TmfXmlStateValue implements ITmfXmlStateValue {
      * the attributes is not in this forced type, it will be converted to this.
      *
      * @return The desired type of the value
+     * @since 2.0
      */
     protected ITmfStateValue.Type getForcedType() {
         return fForcedType;
@@ -223,6 +226,7 @@ public abstract class TmfXmlStateValue implements ITmfXmlStateValue {
      * @return the {@link ITmfStateValue}
      * @throws AttributeNotFoundException
      *             May be thrown by the state system during the query
+     * @since 2.0
      */
     @Override
     public ITmfStateValue getValue(@Nullable ITmfEvent event) throws AttributeNotFoundException {
@@ -235,6 +239,7 @@ public abstract class TmfXmlStateValue implements ITmfXmlStateValue {
      * @param event
      *            The current event
      * @return the value of the event field
+     * @since 2.0
      */
     @Override
     public ITmfStateValue getEventFieldValue(@NonNull ITmfEvent event) {
@@ -253,6 +258,7 @@ public abstract class TmfXmlStateValue implements ITmfXmlStateValue {
      * @param fieldName
      *            The name of the field of which to get the value
      * @return The value of the event field
+     * @since 2.0
      */
     protected ITmfStateValue getEventFieldValue(ITmfEvent event, String fieldName) {
 
@@ -430,6 +436,7 @@ public abstract class TmfXmlStateValue implements ITmfXmlStateValue {
          * @return The state value corresponding to this XML state value
          * @throws AttributeNotFoundException
          *             Pass through the exception it received
+         * @since 2.0
          */
         public abstract ITmfStateValue getValue(@Nullable ITmfEvent event) throws AttributeNotFoundException;
 
@@ -474,6 +481,7 @@ public abstract class TmfXmlStateValue implements ITmfXmlStateValue {
          *             Pass through the exception it received
          * @throws AttributeNotFoundException
          *             Pass through the exception it received
+         * @since 2.0
          */
         @SuppressWarnings("unused")
         protected void processValue(int quark, long timestamp, ITmfStateValue value) throws TimeRangeException, StateValueTypeException, AttributeNotFoundException {

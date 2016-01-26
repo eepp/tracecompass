@@ -27,17 +27,10 @@ import org.eclipse.tracecompass.analysis.os.linux.core.kernelanalysis.KernelThre
 import org.eclipse.tracecompass.common.core.NonNullUtils;
 import org.eclipse.tracecompass.internal.lttng2.kernel.core.analysis.vm.VcpuStateValues;
 import org.eclipse.tracecompass.internal.lttng2.kernel.core.analysis.vm.VmAttributes;
-import org.eclipse.tracecompass.statesystem.core.ITmfStateSystem;
-import org.eclipse.tracecompass.statesystem.core.StateSystemUtils;
-import org.eclipse.tracecompass.statesystem.core.exceptions.AttributeNotFoundException;
-import org.eclipse.tracecompass.statesystem.core.exceptions.StateSystemDisposedException;
-import org.eclipse.tracecompass.statesystem.core.interval.ITmfStateInterval;
-import org.eclipse.tracecompass.statesystem.core.interval.TmfStateInterval;
-import org.eclipse.tracecompass.statesystem.core.statevalue.ITmfStateValue;
-import org.eclipse.tracecompass.statesystem.core.statevalue.TmfStateValue;
 import org.eclipse.tracecompass.tmf.core.analysis.IAnalysisModule;
 import org.eclipse.tracecompass.tmf.core.statesystem.ITmfStateProvider;
 import org.eclipse.tracecompass.tmf.core.statesystem.TmfStateSystemAnalysisModule;
+import org.eclipse.tracecompass.tmf.core.statesystem.TmfStateSystemUtils;
 import org.eclipse.tracecompass.tmf.core.trace.ITmfTrace;
 import org.eclipse.tracecompass.tmf.core.trace.TmfTraceManager;
 import org.eclipse.tracecompass.tmf.core.trace.TmfTraceUtils;
@@ -47,6 +40,14 @@ import org.eclipse.tracecompass.tmf.core.trace.experiment.TmfExperimentUtils;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.TreeMultimap;
+
+import ca.polymtl.dorsal.statesys.ITmfStateSystem;
+import ca.polymtl.dorsal.statesys.exceptions.AttributeNotFoundException;
+import ca.polymtl.dorsal.statesys.exceptions.StateSystemDisposedException;
+import ca.polymtl.dorsal.statesys.interval.ITmfStateInterval;
+import ca.polymtl.dorsal.statesys.interval.TmfStateInterval;
+import ca.polymtl.dorsal.statesys.statevalue.ITmfStateValue;
+import ca.polymtl.dorsal.statesys.statevalue.TmfStateValue;
 
 /**
  * Module for the virtual machine CPU analysis. It tracks the status of the
@@ -210,7 +211,7 @@ public class VirtualMachineCpuAnalysis extends TmfStateSystemAnalysisModule {
                 Long virtualCPU = Long.parseLong(ss.getAttributeName(vcpuQuark));
                 Integer statusQuark = ss.getQuarkRelative(vcpuQuark, VmAttributes.STATUS);
 
-                for (ITmfStateInterval cpuInterval : StateSystemUtils.queryHistoryRange(ss, statusQuark, start, end - 1, resolution, monitor)) {
+                for (ITmfStateInterval cpuInterval : TmfStateSystemUtils.queryHistoryRange(ss, statusQuark, start, end - 1, resolution, monitor)) {
                     ITmfStateValue stateValue = cpuInterval.getStateValue();
                     switch (stateValue.getType()) {
                     case INTEGER:

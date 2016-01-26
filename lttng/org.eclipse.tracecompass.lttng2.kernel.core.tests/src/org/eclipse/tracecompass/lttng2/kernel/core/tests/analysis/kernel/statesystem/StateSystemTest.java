@@ -21,20 +21,21 @@ import java.util.concurrent.TimeUnit;
 
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.tracecompass.analysis.os.linux.core.kernelanalysis.Attributes;
-import org.eclipse.tracecompass.statesystem.core.ITmfStateSystem;
-import org.eclipse.tracecompass.statesystem.core.StateSystemUtils;
-import org.eclipse.tracecompass.statesystem.core.exceptions.AttributeNotFoundException;
-import org.eclipse.tracecompass.statesystem.core.exceptions.StateSystemDisposedException;
-import org.eclipse.tracecompass.statesystem.core.exceptions.StateValueTypeException;
-import org.eclipse.tracecompass.statesystem.core.exceptions.TimeRangeException;
-import org.eclipse.tracecompass.statesystem.core.interval.ITmfStateInterval;
-import org.eclipse.tracecompass.statesystem.core.statevalue.ITmfStateValue;
 import org.eclipse.tracecompass.testtraces.ctf.CtfTestTrace;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestRule;
 import org.junit.rules.Timeout;
+
+import ca.polymtl.dorsal.statesys.ITmfStateSystem;
+import ca.polymtl.dorsal.statesys.StateSystemUtils;
+import ca.polymtl.dorsal.statesys.exceptions.AttributeNotFoundException;
+import ca.polymtl.dorsal.statesys.exceptions.StateSystemDisposedException;
+import ca.polymtl.dorsal.statesys.exceptions.StateValueTypeException;
+import ca.polymtl.dorsal.statesys.exceptions.TimeRangeException;
+import ca.polymtl.dorsal.statesys.interval.ITmfStateInterval;
+import ca.polymtl.dorsal.statesys.statevalue.ITmfStateValue;
 
 /**
  * Base unit tests for the StateHistorySystem. Extension can be made to test
@@ -190,7 +191,7 @@ public abstract class StateSystemTest {
 
         try {
             quark = ss.getQuarkAbsolute(Attributes.CPUS, "0", Attributes.CURRENT_THREAD);
-            intervals = StateSystemUtils.queryHistoryRange(ss, quark, time1, time2, resolution, null);
+            intervals = StateSystemUtils.queryHistoryRange(ss, quark, time1, time2, resolution);
             assertEquals(126, intervals.size()); /* Number of context switches! */
             assertEquals(1452, intervals.get(50).getStateValue().unboxInt());
             assertEquals(1331668248815698779L, intervals.get(100).getEndTime());

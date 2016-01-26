@@ -18,13 +18,14 @@ import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.tracecompass.common.core.collect.BufferedBlockingQueue;
 import org.eclipse.tracecompass.internal.tmf.core.Activator;
-import org.eclipse.tracecompass.statesystem.core.ITmfStateSystem;
-import org.eclipse.tracecompass.statesystem.core.ITmfStateSystemBuilder;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEvent;
 import org.eclipse.tracecompass.tmf.core.event.TmfEvent;
 import org.eclipse.tracecompass.tmf.core.timestamp.ITmfTimestamp;
 import org.eclipse.tracecompass.tmf.core.trace.ITmfContext;
 import org.eclipse.tracecompass.tmf.core.trace.ITmfTrace;
+
+import ca.polymtl.dorsal.statesys.ITmfStateSystem;
+import ca.polymtl.dorsal.statesys.ITmfStateSystemBuilder;
 
 /**
  * Instead of using IStateChangeInput directly, one can extend this class, which
@@ -72,6 +73,7 @@ public abstract class AbstractTmfStateProvider implements ITmfStateProvider {
      * Get the state system builder of this provider (to insert states in).
      *
      * @return The state system object to be filled
+     * @since 2.0
      */
     protected @Nullable ITmfStateSystemBuilder getStateSystemBuilder() {
         return fSS;
@@ -87,6 +89,9 @@ public abstract class AbstractTmfStateProvider implements ITmfStateProvider {
         return fTrace.getStartTime().normalize(0, ITmfTimestamp.NANOSECOND_SCALE).getValue();
     }
 
+    /**
+     * @since 2.0
+     */
     @Override
     public void assignTargetStateSystem(ITmfStateSystemBuilder ssb) {
         fSS = ssb;
@@ -94,6 +99,9 @@ public abstract class AbstractTmfStateProvider implements ITmfStateProvider {
         fEventHandlerThread.start();
     }
 
+    /**
+     * @since 2.0
+     */
     @Override
     public @Nullable ITmfStateSystem getAssignedStateSystem() {
         return fSS;

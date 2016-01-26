@@ -22,7 +22,6 @@ import java.util.Set;
 
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.jdt.annotation.NonNull;
-import org.eclipse.tracecompass.statesystem.core.ITmfStateSystem;
 import org.eclipse.tracecompass.tmf.analysis.xml.core.model.ITmfXmlModelFactory;
 import org.eclipse.tracecompass.tmf.analysis.xml.core.model.TmfXmlEventHandler;
 import org.eclipse.tracecompass.tmf.analysis.xml.core.model.TmfXmlLocation;
@@ -34,6 +33,8 @@ import org.eclipse.tracecompass.tmf.core.statesystem.AbstractTmfStateProvider;
 import org.eclipse.tracecompass.tmf.core.trace.ITmfTrace;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
+
+import ca.polymtl.dorsal.statesys.ITmfStateSystem;
 
 /**
  * This is the state change input plug-in for TMF's state system which handles
@@ -150,6 +151,9 @@ public class XmlStateProvider extends AbstractTmfStateProvider implements IXmlSt
         }
     }
 
+    /**
+     * @since 2.0
+     */
     @Override
     public ITmfStateSystem getStateSystem() {
         return getStateSystemBuilder();

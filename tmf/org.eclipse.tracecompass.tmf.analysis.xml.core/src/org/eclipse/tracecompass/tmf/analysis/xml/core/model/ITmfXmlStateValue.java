@@ -15,11 +15,12 @@ package org.eclipse.tracecompass.tmf.analysis.xml.core.model;
 import java.util.List;
 
 import org.eclipse.jdt.annotation.Nullable;
-import org.eclipse.tracecompass.statesystem.core.exceptions.AttributeNotFoundException;
-import org.eclipse.tracecompass.statesystem.core.exceptions.StateValueTypeException;
-import org.eclipse.tracecompass.statesystem.core.exceptions.TimeRangeException;
-import org.eclipse.tracecompass.statesystem.core.statevalue.ITmfStateValue;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEvent;
+
+import ca.polymtl.dorsal.statesys.exceptions.AttributeNotFoundException;
+import ca.polymtl.dorsal.statesys.exceptions.StateValueTypeException;
+import ca.polymtl.dorsal.statesys.exceptions.TimeRangeException;
+import ca.polymtl.dorsal.statesys.statevalue.ITmfStateValue;
 
 /**
  * Interface that describe operations on a state value described in an XML
@@ -40,6 +41,7 @@ public interface ITmfXmlStateValue {
      * @return the {@link ITmfStateValue}
      * @throws AttributeNotFoundException
      *             May be thrown by the state system during the query
+     * @since 2.0
      */
     ITmfStateValue getValue(@Nullable ITmfEvent event) throws AttributeNotFoundException;
 
@@ -49,6 +51,7 @@ public interface ITmfXmlStateValue {
      * @param event
      *            The current event
      * @return the value of the event field
+     * @since 2.0
      */
     ITmfStateValue getEventFieldValue(ITmfEvent event);
 

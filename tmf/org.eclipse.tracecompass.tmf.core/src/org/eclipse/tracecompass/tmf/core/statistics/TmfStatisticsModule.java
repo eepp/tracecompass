@@ -20,12 +20,13 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.Nullable;
-import org.eclipse.tracecompass.statesystem.core.ITmfStateSystem;
 import org.eclipse.tracecompass.tmf.core.analysis.TmfAbstractAnalysisModule;
 import org.eclipse.tracecompass.tmf.core.exceptions.TmfAnalysisException;
 import org.eclipse.tracecompass.tmf.core.statesystem.ITmfAnalysisModuleWithStateSystems;
 import org.eclipse.tracecompass.tmf.core.statesystem.TmfStateSystemAnalysisModule;
 import org.eclipse.tracecompass.tmf.core.trace.ITmfTrace;
+
+import ca.polymtl.dorsal.statesys.ITmfStateSystem;
 
 /**
  * Analysis module to compute the statistics of a trace.
@@ -176,6 +177,9 @@ public class TmfStatisticsModule extends TmfAbstractAnalysisModule
     // ITmfStateSystemAnalysisModule
     // ------------------------------------------------------------------------
 
+    /**
+     * @since 2.0
+     */
     @Override
     public ITmfStateSystem getStateSystem(String id) {
         switch (id) {

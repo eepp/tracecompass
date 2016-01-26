@@ -24,11 +24,6 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jdt.annotation.Nullable;
-import org.eclipse.tracecompass.statesystem.core.ITmfStateSystem;
-import org.eclipse.tracecompass.statesystem.core.ITmfStateSystemBuilder;
-import org.eclipse.tracecompass.statesystem.core.StateSystemFactory;
-import org.eclipse.tracecompass.statesystem.core.backend.IStateHistoryBackend;
-import org.eclipse.tracecompass.statesystem.core.backend.StateHistoryBackendFactory;
 import org.eclipse.tracecompass.tmf.core.analysis.TmfAbstractAnalysisModule;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEvent;
 import org.eclipse.tracecompass.tmf.core.exceptions.TmfTraceException;
@@ -42,6 +37,12 @@ import org.eclipse.tracecompass.tmf.core.trace.ITmfTraceCompleteness;
 import org.eclipse.tracecompass.tmf.core.trace.TmfTraceManager;
 import org.eclipse.tracecompass.tmf.core.trace.TmfTraceUtils;
 import org.eclipse.tracecompass.tmf.core.trace.experiment.TmfExperiment;
+
+import ca.polymtl.dorsal.statesys.ITmfStateSystem;
+import ca.polymtl.dorsal.statesys.ITmfStateSystemBuilder;
+import ca.polymtl.dorsal.statesys.StateSystemFactory;
+import ca.polymtl.dorsal.statesys.backend.IStateHistoryBackend;
+import ca.polymtl.dorsal.statesys.backend.StateHistoryBackendFactory;
 
 /**
  * Abstract analysis module to generate a state system. It is a base class that
@@ -96,6 +97,7 @@ public abstract class TmfStateSystemAnalysisModule extends TmfAbstractAnalysisMo
      * @param moduleId
      *            The ID of the state system analysis module
      * @return The state system, or null if there was no match
+     * @since 2.0
      */
     public static @Nullable ITmfStateSystem getStateSystem(ITmfTrace trace, String moduleId) {
         TmfStateSystemAnalysisModule module =
@@ -146,6 +148,7 @@ public abstract class TmfStateSystemAnalysisModule extends TmfAbstractAnalysisMo
      * created.
      *
      * @return The state system
+     * @since 2.0
      */
     @Nullable
     public ITmfStateSystem getStateSystem() {
@@ -426,6 +429,9 @@ public abstract class TmfStateSystemAnalysisModule extends TmfAbstractAnalysisMo
     // ITmfAnalysisModuleWithStateSystems
     // ------------------------------------------------------------------------
 
+    /**
+     * @since 2.0
+     */
     @Override
     @Nullable
     public ITmfStateSystem getStateSystem(String id) {

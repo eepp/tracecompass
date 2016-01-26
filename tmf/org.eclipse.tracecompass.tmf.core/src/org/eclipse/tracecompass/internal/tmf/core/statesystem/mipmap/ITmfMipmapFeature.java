@@ -13,7 +13,8 @@
 package org.eclipse.tracecompass.internal.tmf.core.statesystem.mipmap;
 
 import org.eclipse.jdt.annotation.NonNull;
-import org.eclipse.tracecompass.statesystem.core.statevalue.ITmfStateValue;
+
+import ca.polymtl.dorsal.statesys.statevalue.ITmfStateValue;
 
 /**
  * Interface to allow additional types of mipmaps to be added. Two functions
