@@ -34,7 +34,7 @@ import org.eclipse.tracecompass.tmf.core.trace.TmfTraceUtils;
  * @author Christian Mansky
  * @since 2.0
  */
-public final class ThreadPriorityAspect implements ITmfEventAspect {
+public final class ThreadPriorityAspect implements ITmfEventAspect.IntegerAspect {
 
     /** The singleton instance */
     public static final ThreadPriorityAspect INSTANCE = new ThreadPriorityAspect();

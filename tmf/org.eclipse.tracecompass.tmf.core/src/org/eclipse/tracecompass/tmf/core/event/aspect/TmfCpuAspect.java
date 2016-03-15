@@ -23,7 +23,7 @@ import org.eclipse.tracecompass.tmf.core.event.ITmfEvent;
  *
  * @author Alexandre Montplaisir
  */
-public abstract class TmfCpuAspect implements ITmfEventAspect {
+public abstract class TmfCpuAspect implements ITmfEventAspect.IntegerAspect {
 
     @Override
     public final String getName() {

@@ -42,16 +42,44 @@ public interface ITmfEventAspect {
      */
     String EMPTY_STRING = ""; //$NON-NLS-1$
 
+    // ------------------------------------------------------------------------
+    // Specific aspect definitions
+    // ------------------------------------------------------------------------
+
+    /**
+     * Aspects that specifically return an {@link Integer}.
+     *
+     * @since 2.0
+     */
+    interface IntegerAspect extends ITmfEventAspect {
+        @Override
+        @Nullable Integer resolve(ITmfEvent event);
+    }
+
+    /**
+     * Aspects that specifically return a {@link String}.
+     *
+     * @since 2.0
+     */
+    interface StringAspect extends ITmfEventAspect {
+        @Override
+        @Nullable String resolve(ITmfEvent event);
+    }
+
+    // ------------------------------------------------------------------------
+    // Base aspects provided by the framework
+    // ------------------------------------------------------------------------
+
     /**
      * List of all common base aspects
      */
-    public static final List<ITmfEventAspect> BASE_ASPECTS =
-            ImmutableList.of(
+    List<ITmfEventAspect> BASE_ASPECTS = ImmutableList.of(
                     BaseAspects.TIMESTAMP,
                     BaseAspects.EVENT_TYPE,
                     BaseAspects.CONTENTS,
                     BaseAspects.TRACE_NAME
                     );
+
     /**
      * Some basic aspects that all trace types should be able to use, using
      * methods found in {@link ITmfEvent}.
@@ -81,7 +109,7 @@ public interface ITmfEventAspect {
         /**
          * Aspect for the event type
          */
-        ITmfEventAspect EVENT_TYPE = new ITmfEventAspect() {
+        StringAspect EVENT_TYPE = new StringAspect() {
             @Override
             public String getName() {
                 return Messages.getMessage(Messages.AspectName_EventType);
@@ -121,7 +149,7 @@ public interface ITmfEventAspect {
         /**
          * Aspect for the trace's name (for experiments with many traces)
          */
-        ITmfEventAspect TRACE_NAME = new ITmfEventAspect() {
+        StringAspect TRACE_NAME = new StringAspect() {
             @Override
             public String getName() {
                 return Messages.getMessage(Messages.AspectName_TraceName);
@@ -138,6 +166,10 @@ public interface ITmfEventAspect {
             }
         };
     }
+
+    // ------------------------------------------------------------------------
+    // Interface methods
+    // ------------------------------------------------------------------------
 
     /**
      * Get the name of this aspect. This name will be user-visible and, as such,
