@@ -13,6 +13,7 @@
 package org.eclipse.tracecompass.statesystem.core;
 
 import org.eclipse.jdt.annotation.NonNull;
+import org.eclipse.tracecompass.statesystem.core.aggregate.IStateAggregationRule;
 import org.eclipse.tracecompass.statesystem.core.exceptions.AttributeNotFoundException;
 import org.eclipse.tracecompass.statesystem.core.exceptions.StateValueTypeException;
 import org.eclipse.tracecompass.statesystem.core.exceptions.TimeRangeException;
@@ -236,4 +237,17 @@ public interface ITmfStateSystemBuilder extends ITmfStateSystem {
      *             know how to handle it.
      */
     void closeHistory(long endTime);
+
+    /**
+     * Register an aggregation rule to this state system.
+     *
+     * Even though aggregation rules are technically read-only operations, only
+     * owners of an {@link ITmfStateSystemBuilder} should be able to setup
+     * aggregation rules, which is why this method is in this class.
+     *
+     * @param rule
+     * @see IStateAggregationRule
+     * @since 2.0
+     */
+    void addAggregationRule(@NonNull IStateAggregationRule rule);
 }
