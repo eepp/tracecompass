@@ -9,6 +9,8 @@
 
 package org.eclipse.tracecompass.internal.provisional.analysis.lami.core.aspect;
 
+import java.util.Comparator;
+
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.tracecompass.internal.provisional.analysis.lami.core.module.LamiTableEntry;
 import org.eclipse.tracecompass.internal.provisional.analysis.lami.core.types.LamiData;
@@ -61,4 +63,17 @@ public class LamiProcessNameAspect extends LamiTableEntryAspect {
         return 0;
     }
 
+    @Override
+    public Comparator<LamiTableEntry> getComparator() {
+        return (o1, o2) -> {
+            String s1 = resolveString(o1);
+            String s2 = resolveString(o2);
+
+            if (s1 == null || s2 == null) {
+                return 0;
+            }
+
+            return s1.compareTo(s2);
+        };
+    }
 }
