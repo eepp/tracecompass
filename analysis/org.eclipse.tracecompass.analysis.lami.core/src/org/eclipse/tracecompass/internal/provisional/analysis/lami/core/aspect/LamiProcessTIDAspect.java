@@ -9,6 +9,8 @@
 
 package org.eclipse.tracecompass.internal.provisional.analysis.lami.core.aspect;
 
+import java.util.Comparator;
+
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.tracecompass.internal.provisional.analysis.lami.core.module.LamiTableEntry;
 import org.eclipse.tracecompass.internal.provisional.analysis.lami.core.types.LamiData;
@@ -38,7 +40,7 @@ public class LamiProcessTIDAspect extends LamiTableEntryAspect {
 
     @Override
     public boolean isNumerical() {
-        return false;
+        return true;
     }
 
     @Override
@@ -64,7 +66,23 @@ public class LamiProcessTIDAspect extends LamiTableEntryAspect {
 
     @Override
     public double resolveDouble(LamiTableEntry entry) {
+        LamiData data = entry.getValue(fColIndex);
+        if (data instanceof LamiProcess) {
+            Long tid = ((LamiProcess) data).getTID();
+
+            if (tid == null) {
+                return 0;
+            }
+
+            return tid;
+        }
+
         return 0;
+    }
+
+    @Override
+    public Comparator<LamiTableEntry> getComparator() {
+        return (o1, o2) -> Double.compare(resolveDouble(o1), resolveDouble(o2));
     }
 
 }
