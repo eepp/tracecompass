@@ -9,6 +9,8 @@
 
 package org.eclipse.tracecompass.internal.provisional.analysis.lami.core.aspect;
 
+import java.util.Comparator;
+
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.tracecompass.internal.provisional.analysis.lami.core.module.LamiTableEntry;
 
@@ -98,4 +100,6 @@ public abstract class LamiTableEntryAspect {
      * @return The double value for the given cell
      */
     public abstract double resolveDouble(LamiTableEntry entry);
+
+    public abstract Comparator<LamiTableEntry> getComparator();
 }
