@@ -114,11 +114,11 @@ public abstract class LamiData {
     private static final Map<Class<?>, Function<Object, LamiData>> PRIMITIVE_TYPE_GENERATOR;
     static {
         ImmutableMap.Builder<Class<?>, Function<Object, LamiData>> primitiveTypeGenBuilder = ImmutableMap.builder();
-        primitiveTypeGenBuilder.put(Boolean.class, (Object o) -> new LamiBoolean(((Boolean) o).booleanValue()));
-        primitiveTypeGenBuilder.put(Integer.class, (Object o) -> new LamiInteger(((Integer) o).longValue()));
-        primitiveTypeGenBuilder.put(Long.class, (Object o) -> new LamiInteger((Long) o));
-        primitiveTypeGenBuilder.put(Double.class, (Object o) -> new LamiNumber((Double) o));
-        primitiveTypeGenBuilder.put(String.class, (Object o) -> new LamiString((String) o));
+        primitiveTypeGenBuilder.put(Boolean.class, (o) -> new LamiBoolean(((Boolean) o).booleanValue()));
+        primitiveTypeGenBuilder.put(Integer.class, (o) -> new LamiInteger(((Integer) o).longValue()));
+        primitiveTypeGenBuilder.put(Long.class, (o) -> new LamiInteger((Long) o));
+        primitiveTypeGenBuilder.put(Double.class, (o) -> new LamiNumber((Double) o));
+        primitiveTypeGenBuilder.put(String.class, (o) -> new LamiString((String) o));
         PRIMITIVE_TYPE_GENERATOR = primitiveTypeGenBuilder.build();
     }
 
@@ -130,23 +130,23 @@ public abstract class LamiData {
     private static final Map<String, CheckedJSONExceptionFunction<JSONObject, LamiData>> COMPLEX_TYPE_GENERATOR;
     static {
         ImmutableMap.Builder<String, CheckedJSONExceptionFunction<JSONObject, LamiData>> complexTypeGenBuilder = ImmutableMap.builder();
-        complexTypeGenBuilder.put(LamiStrings.DATA_CLASS_BITRATE, (JSONObject obj) -> new LamiBitrate(getJSONObjectLongValue(obj)));
-        complexTypeGenBuilder.put(LamiStrings.DATA_CLASS_CPU, (JSONObject obj) -> new LamiCPU(obj.getLong(LamiStrings.ID)));
-        complexTypeGenBuilder.put(LamiStrings.DATA_CLASS_DISK, (JSONObject obj) -> new LamiDisk(getJSONObjectStringName(obj)));
-        complexTypeGenBuilder.put(LamiStrings.DATA_CLASS_DURATION, (JSONObject obj) -> new LamiDuration(getJSONObjectLongValue(obj)));
-        complexTypeGenBuilder.put(LamiStrings.DATA_CLASS_PART, (JSONObject obj) -> new LamiDiskPartition(getJSONObjectStringName(obj)));
-        complexTypeGenBuilder.put(LamiStrings.DATA_CLASS_FD, (JSONObject obj) -> new LamiFileDescriptor(obj.getLong(LamiStrings.FD)));
-        complexTypeGenBuilder.put(LamiStrings.DATA_CLASS_NETIF, (JSONObject obj) -> new LamiNetworkInterface(getJSONObjectStringName(obj)));
-        complexTypeGenBuilder.put(LamiStrings.DATA_CLASS_PATH, (JSONObject obj) -> new LamiPath(checkNotNull(obj.getString(LamiStrings.PATH))));
-        complexTypeGenBuilder.put(LamiStrings.DATA_CLASS_PROCESS, (JSONObject obj) -> {
+        complexTypeGenBuilder.put(LamiStrings.DATA_CLASS_BITRATE, (obj) -> new LamiBitrate(getJSONObjectLongValue(obj)));
+        complexTypeGenBuilder.put(LamiStrings.DATA_CLASS_CPU, (obj) -> new LamiCPU(obj.getLong(LamiStrings.ID)));
+        complexTypeGenBuilder.put(LamiStrings.DATA_CLASS_DISK, (obj) -> new LamiDisk(getJSONObjectStringName(obj)));
+        complexTypeGenBuilder.put(LamiStrings.DATA_CLASS_DURATION, (obj) -> new LamiDuration(getJSONObjectLongValue(obj)));
+        complexTypeGenBuilder.put(LamiStrings.DATA_CLASS_PART, (obj) -> new LamiDiskPartition(getJSONObjectStringName(obj)));
+        complexTypeGenBuilder.put(LamiStrings.DATA_CLASS_FD, (obj) -> new LamiFileDescriptor(obj.getLong(LamiStrings.FD)));
+        complexTypeGenBuilder.put(LamiStrings.DATA_CLASS_NETIF, (obj) -> new LamiNetworkInterface(getJSONObjectStringName(obj)));
+        complexTypeGenBuilder.put(LamiStrings.DATA_CLASS_PATH, (obj) -> new LamiPath(checkNotNull(obj.getString(LamiStrings.PATH))));
+        complexTypeGenBuilder.put(LamiStrings.DATA_CLASS_PROCESS, (obj) -> {
             String name = obj.optString(LamiStrings.NAME);
             Long pid = (obj.has(LamiStrings.PID) ? obj.getLong(LamiStrings.PID) : null);
             Long tid = (obj.has(LamiStrings.TID) ? obj.getLong(LamiStrings.TID) : null);
 
             return new LamiProcess(name, pid, tid);
         });
-        complexTypeGenBuilder.put(LamiStrings.DATA_CLASS_RATIO, (JSONObject obj) -> new LamiRatio(obj.getDouble(LamiStrings.VALUE)));
-        complexTypeGenBuilder.put(LamiStrings.DATA_CLASS_IRQ, (JSONObject obj) -> {
+        complexTypeGenBuilder.put(LamiStrings.DATA_CLASS_RATIO, (obj) -> new LamiRatio(obj.getDouble(LamiStrings.VALUE)));
+        complexTypeGenBuilder.put(LamiStrings.DATA_CLASS_IRQ, (obj) -> {
             LamiIRQ.Type irqType = LamiIRQ.Type.HARD;
 
             if (obj.has(LamiStrings.HARD)) {
@@ -159,16 +159,16 @@ public abstract class LamiData {
 
             return new LamiIRQ(irqType, nr, name);
         });
-        complexTypeGenBuilder.put(LamiStrings.DATA_CLASS_SIZE, (JSONObject obj) -> new LamiSize(getJSONObjectLongValue(obj)));
-        complexTypeGenBuilder.put(LamiStrings.DATA_CLASS_SYSCALL, (JSONObject obj) -> new LamiSystemCall(getJSONObjectStringName(obj)));
-        complexTypeGenBuilder.put(LamiStrings.DATA_CLASS_TIME_RANGE, (JSONObject obj) -> {
+        complexTypeGenBuilder.put(LamiStrings.DATA_CLASS_SIZE, (obj) -> new LamiSize(getJSONObjectLongValue(obj)));
+        complexTypeGenBuilder.put(LamiStrings.DATA_CLASS_SYSCALL, (obj) -> new LamiSystemCall(getJSONObjectStringName(obj)));
+        complexTypeGenBuilder.put(LamiStrings.DATA_CLASS_TIME_RANGE, (obj) -> {
             long begin = obj.getLong(LamiStrings.BEGIN);
             long end = obj.getLong(LamiStrings.END);
 
             return new LamiTimeRange(begin, end);
         });
-        complexTypeGenBuilder.put(LamiStrings.DATA_CLASS_TIMESTAMP, (JSONObject obj) -> new LamiTimestamp(getJSONObjectLongValue(obj)));
-        complexTypeGenBuilder.put(LamiStrings.DATA_CLASS_UNKNOWN, (JSONObject obj) -> LamiUnknown.INSTANCE);
+        complexTypeGenBuilder.put(LamiStrings.DATA_CLASS_TIMESTAMP, (obj) -> new LamiTimestamp(getJSONObjectLongValue(obj)));
+        complexTypeGenBuilder.put(LamiStrings.DATA_CLASS_UNKNOWN, (obj) -> LamiUnknown.INSTANCE);
         COMPLEX_TYPE_GENERATOR = complexTypeGenBuilder.build();
     }
 
