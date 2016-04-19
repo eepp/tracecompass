@@ -9,6 +9,8 @@
 
 package org.eclipse.tracecompass.internal.provisional.analysis.lami.core.aspect;
 
+import java.util.Comparator;
+
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.tracecompass.internal.provisional.analysis.lami.core.module.LamiTableEntry;
@@ -65,6 +67,11 @@ public class LamiTimeRangeDurationAspect extends LamiTableEntryAspect {
             return range.getDuration();
         }
         return 0;
+    }
+
+    @Override
+    public Comparator<LamiTableEntry> getComparator() {
+        return (o1, o2) -> Double.compare(resolveDouble(o1), resolveDouble(o2));
     }
 
 }
