@@ -342,7 +342,7 @@ public abstract class LamiXYChartViewer extends TmfViewer implements ILamiViewer
     }
 
     /**
-     * Get the aspect with th given name
+     * Get the aspect with the given name
      *
      * @param aspects
      *            The list of aspects to search into
