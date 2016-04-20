@@ -13,6 +13,7 @@ package org.eclipse.tracecompass.internal.provisional.analysis.lami.ui.viewers;
 import static org.eclipse.tracecompass.common.core.NonNullUtils.checkNotNull;
 import static org.eclipse.tracecompass.common.core.NonNullUtils.nullToEmptyString;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.jdt.annotation.Nullable;
@@ -26,7 +27,6 @@ import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.TableColumn;
-import org.eclipse.tracecompass.common.core.NonNullUtils;
 import org.eclipse.tracecompass.internal.provisional.analysis.lami.core.aspect.LamiTableEntryAspect;
 import org.eclipse.tracecompass.internal.provisional.analysis.lami.core.module.LamiResultTable;
 import org.eclipse.tracecompass.internal.provisional.analysis.lami.core.module.LamiTableEntry;
@@ -83,11 +83,17 @@ public final class LamiTableViewer extends TmfSimpleTableViewer implements ILami
     private class LamiTableSelectionListener extends SelectionAdapter {
         @Override
         public void widgetSelected(@Nullable SelectionEvent e) {
-            LamiTableEntry selectedEntry = ((LamiTableEntry) NonNullUtils.checkNotNull(e).item.getData());
-            int selectionIndex  = fResultTable.getEntries().indexOf(selectedEntry);
+
+            IStructuredSelection selections =  getTableViewer().getStructuredSelection();
+            //LamiTableEntry selectedEntry = (LamiTableEntry) selections.getFirstElement();
+
+            List<Integer> selectionIndexes = new ArrayList<>();
+            for (Object selectedEntry : selections.toArray() ) {
+                selectionIndexes.add(fResultTable.getEntries().indexOf(selectedEntry));
+            }
 
             /* Signal all Lami viewers & views of the selection */
-            LamiSelectionUpdateSignal signal = new LamiSelectionUpdateSignal(LamiTableViewer.this, selectionIndex, checkNotNull(fResultTable).hashCode());
+            LamiSelectionUpdateSignal signal = new LamiSelectionUpdateSignal(LamiTableViewer.this, selectionIndexes, checkNotNull(fResultTable).hashCode());
             TmfSignalManager.dispatchSignal(signal);
         }
     }
@@ -195,10 +201,19 @@ public final class LamiTableViewer extends TmfSimpleTableViewer implements ILami
          }
         /* Fetch the position of the selected entry in the actual table since it could be sorted by another column */
         LamiTableContentProvider latencyContentProvider = (LamiTableContentProvider) getTableViewer().getContentProvider();
-        LamiTableEntry entry = fResultTable.getEntries().get(signal.getEntryIndex());
-        int index = latencyContentProvider.getIndexOf(entry);
 
-        getTableViewer().setSelection(new StructuredSelection(getTableViewer().getElementAt(index)));
+        @Nullable List<Integer> selections = signal.getEntryIndex();
+        if (selections == null) {
+            getTableViewer().getTable().deselectAll();
+            return;
+        }
+
+        int[] selectionsIndexes = selections.stream().mapToInt(index -> {
+            LamiTableEntry entry = fResultTable.getEntries().get(index);
+            return latencyContentProvider.getIndexOf(entry);
+        }).toArray();
+
+        getTableViewer().getTable().setSelection(selectionsIndexes);
         getTableViewer().refresh();
 
     }

@@ -9,6 +9,9 @@
 
 package org.eclipse.tracecompass.internal.provisional.analysis.lami.ui.signals;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.eclipse.tracecompass.tmf.core.signal.TmfSignal;
 
 /**
@@ -18,7 +21,7 @@ import org.eclipse.tracecompass.tmf.core.signal.TmfSignal;
  */
 public class LamiSelectionUpdateSignal extends TmfSignal {
 
-    private final int fEntryIndex;
+    private final List<Integer> fEntryIndexList;
     private final int fSignalHash;
 
     /**
@@ -31,16 +34,16 @@ public class LamiSelectionUpdateSignal extends TmfSignal {
      * @param signalHash
      *            The hash for exclusivity signaling
      */
-    public LamiSelectionUpdateSignal(Object source, int entryIndex, int signalHash) {
+    public LamiSelectionUpdateSignal(Object source, List<Integer> entryIndexList, int signalHash) {
         super(source);
-        fEntryIndex = entryIndex;
+        fEntryIndexList = new ArrayList<>(entryIndexList);
         fSignalHash = signalHash;
     }
 
 
     @Override
     public String toString() {
-        return "[" + this.getClass().getSimpleName() + " (" + fEntryIndex + ")]"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+        return "[" + this.getClass().getSimpleName() + " (" + fEntryIndexList + ")]"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
     }
 
     /**
@@ -49,8 +52,8 @@ public class LamiSelectionUpdateSignal extends TmfSignal {
      * @return
      *          The new selected entry
      */
-    public int getEntryIndex() {
-        return fEntryIndex;
+    public List<Integer> getEntryIndex() {
+        return fEntryIndexList;
     }
 
 

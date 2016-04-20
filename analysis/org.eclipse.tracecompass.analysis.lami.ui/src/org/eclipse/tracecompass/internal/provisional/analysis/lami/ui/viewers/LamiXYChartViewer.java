@@ -109,7 +109,7 @@ public abstract class LamiXYChartViewer extends TmfViewer implements ILamiViewer
     private final String fYTitle;
 
     private boolean fSelected;
-    private int fSelection;
+    private List<Integer> fSelection;
 
     /**
      * Creates a Viewer instance based on SWTChart.
@@ -128,11 +128,10 @@ public abstract class LamiXYChartViewer extends TmfViewer implements ILamiViewer
         fParent = parent;
         fResultTable = resultTable;
         fChartModel = chartModel;
+        fSelection = new ArrayList<>();
 
         fChart = new Chart(parent, SWT.NONE);
         fChart.addListener(SWT.Resize, fResizeListener);
-
-        unsetSelection();
 
         /* Set Chart title */
         fChartTitle = fResultTable.getTableClass().getTableTitle();
@@ -226,7 +225,7 @@ public abstract class LamiXYChartViewer extends TmfViewer implements ILamiViewer
      *
      * @param selection the index to select.
      */
-    protected void setSelection(int selection) {
+    protected void setSelection(List<Integer> selection) {
         fSelection = selection;
         fSelected = true;
     }
@@ -235,7 +234,7 @@ public abstract class LamiXYChartViewer extends TmfViewer implements ILamiViewer
      * Unset the chart selection.
      */
     protected void unsetSelection() {
-        fSelection = 0;
+        fSelection.clear();
         fSelected = false;
     }
 
@@ -244,7 +243,7 @@ public abstract class LamiXYChartViewer extends TmfViewer implements ILamiViewer
      *
      * @return the current selection index.
      */
-    protected int getSelection() {
+    protected List<Integer> getSelection() {
         return fSelection;
     }
 

@@ -12,6 +12,7 @@ package org.eclipse.tracecompass.internal.provisional.analysis.lami.ui.views;
 import static org.eclipse.tracecompass.common.core.NonNullUtils.checkNotNull;
 import static org.eclipse.tracecompass.common.core.NonNullUtils.nullToEmptyString;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -72,6 +73,7 @@ public final class LamiReportView extends TmfView {
     private final Set<LamiViewerControl> fPredefGraphViewerControls = new LinkedHashSet<>();
     private final Set<LamiViewerControl> fCustomGraphViewerControls = new LinkedHashSet<>();
     private @Nullable SashForm fSashForm;
+    private List<Integer> fSelectionIndexes;
 
     // ------------------------------------------------------------------------
     // Constructor
@@ -83,7 +85,7 @@ public final class LamiReportView extends TmfView {
     public LamiReportView() {
         super(VIEW_ID);
         fResultTable = LamiReportViewFactory.getCurrentResultTable();
-
+        fSelectionIndexes = new ArrayList<>();
         /* Register to receive LamiSelectionUpdateSignal */
         TmfSignalManager.register(this);
     }
@@ -318,6 +320,10 @@ public final class LamiReportView extends TmfView {
             LamiViewerControl viewerControl = new LamiViewerControl(icfChartViewerParent, icfResultTable, graphModel);
             fCustomGraphViewerControls.add(viewerControl);
             viewerControl.getToggleAction().run();
+
+            /* Signal the current selection to the newly created graph */
+            LamiSelectionUpdateSignal signal = new LamiSelectionUpdateSignal(LamiReportView.this, fSelectionIndexes, checkNotNull(fResultTable).hashCode());
+            TmfSignalManager.dispatchSignal(signal);
         }
     }
 
@@ -344,18 +350,32 @@ public final class LamiReportView extends TmfView {
             return;
         }
 
-        LamiTableEntry selectedEntry = table.getEntries().get(signal.getEntryIndex());
-        LamiTimeRange range = selectedEntry.getCorrespondingTimeRange();
+        /*
+         * Since most of the external viewer deal only with continuous timerange and do not allow multi time range
+         * selection simply signal only when only one selection is present.
+         */
 
-        if (range == null) {
-            /* This entry does not supply range information. */
+        if (signal.getEntryIndex().size() == 0) {
+            /*
+             * In an ideal world we would send a null signal to reset all view
+             * and simply show no selection. But since this is Tracecompass
+             * there is no notion of "unselected state" in most of the viewers so
+             * we do not update/clear the last timerange and show false information to the user.
+             */
             return;
         }
 
-        /* Send Range update to other views */
-        ITmfTimestamp start = TmfTimestamp.fromNanos(range.getStart());
-        ITmfTimestamp end = TmfTimestamp.fromNanos(range.getEnd());
-        TmfSignalManager.dispatchSignal(new TmfSelectionRangeUpdatedSignal(LamiReportView.this, start, end));
+        if (signal.getEntryIndex().size() == 1) {
+            LamiTimeRange timeRange = table.getEntries().get(signal.getEntryIndex().get(0)).getCorrespondingTimeRange();
+            if (timeRange != null) {
+                /* Send Range update to other views */
+                ITmfTimestamp start = TmfTimestamp.fromNanos(timeRange.getStart());
+                ITmfTimestamp end = TmfTimestamp.fromNanos(timeRange.getEnd());
+                TmfSignalManager.dispatchSignal(new TmfSelectionRangeUpdatedSignal(LamiReportView.this, start, end));
+            }
+        }
+
+        fSelectionIndexes = signal.getEntryIndex();
     }
 
     /**
@@ -377,6 +397,7 @@ public final class LamiReportView extends TmfView {
         }
         TmfTimeRange range = new TmfTimeRange(signal.getBeginTime(), signal.getEndTime());
 
+        List<Integer> selections = new ArrayList<>();
         for (LamiTableEntry entry : table.getEntries()) {
             LamiTimeRange timerange = entry.getCorrespondingTimeRange();
             if (timerange == null) {
@@ -386,17 +407,12 @@ public final class LamiReportView extends TmfView {
 
             TmfTimeRange tempTimeRange = new TmfTimeRange(TmfTimestamp.fromNanos(timerange.getStart()), TmfTimestamp.fromNanos(timerange.getEnd()));
             if (tempTimeRange.getIntersection(range) != null) {
-                /* It intersect */
-                /*
-                 * For now only select the first entry that intersect with the
-                 * timerange
-                 */
-                int firstIndex = table.getEntries().indexOf(entry);
-                /* Update all LamiViewer */
-                LamiSelectionUpdateSignal signal1 = new LamiSelectionUpdateSignal(LamiReportView.this, firstIndex, table.hashCode());
-                TmfSignalManager.dispatchSignal(signal1);
-                return;
+                selections.add(table.getEntries().indexOf(entry));
             }
         }
+
+        /* Update all LamiViewer */
+        LamiSelectionUpdateSignal signal1 = new LamiSelectionUpdateSignal(LamiReportView.this, selections, table.hashCode());
+        TmfSignalManager.dispatchSignal(signal1);
     }
 }

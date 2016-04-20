@@ -37,7 +37,7 @@ public interface ILamiViewer {
      * @return The new viewer
      */
     static ILamiViewer createLamiTable(Composite parent, LamiResultTable resultTable) {
-        TableViewer tableViewer = new TableViewer(parent, SWT.FULL_SELECTION | SWT.VIRTUAL);
+        TableViewer tableViewer = new TableViewer(parent, SWT.FULL_SELECTION | SWT.MULTI | SWT.VIRTUAL);
         return new LamiTableViewer(tableViewer, resultTable);
     }
 

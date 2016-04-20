@@ -11,6 +11,7 @@ package org.eclipse.tracecompass.internal.provisional.analysis.lami.ui.viewers;
 
 import static org.eclipse.tracecompass.common.core.NonNullUtils.checkNotNull;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -78,7 +79,13 @@ public class LamiHistogramViewer extends LamiXYChartViewer {
         LamiTableEntryAspect xAxisAspect = getAspectFromName(aspects, getChartModel().getXAxisColumn());
 
         String[] categories = entries.stream()
-                .map(entry -> xAxisAspect.resolveString(entry))
+                .map(entry -> {
+                    String text = xAxisAspect.resolveString(entry);
+                    if (text == null || text.isEmpty()) {
+                        return UNKNOWN;
+                    }
+                    return text;
+                })
                 .toArray(String[]::new);
         fCategories = checkNotNull(categories);
 
@@ -153,17 +160,26 @@ public class LamiHistogramViewer extends LamiXYChartViewer {
                 int xMouseLocation = event.x;
                 int yMouseLocation = event.y;
 
-                /* Reset selection state*/
-                unsetSelection();
+                List<Integer> selections;
+                if ((event.stateMask & SWT.CTRL) != 0 ) {
+                    /* Reset selection */
+                    selections = getSelection();
+
+                } else {
+                    /* Reset selection state*/
+                    unsetSelection();
+                    selections = new ArrayList<>();
+                }
 
                 ISeries[] series = getChart().getSeriesSet().getSeries();
 
                 /* Iterate over all series, get the rectangle bounds for each categories,
-                 * found the category index under the mouse.f
+                 * found the category index under the mouse.
                  * Since categories map directly to the index of the fResulTable and that
                  * this table is immutable the index of the entry correspond the the categories
                  * index. Signal to all LamiViewer and LamiView the update of selection.
                  */
+
                 for (ISeries oneSeries : series) {
                     IBarSeries barSerie = ((IBarSeries) oneSeries);
                     Rectangle[] recs =  barSerie.getBounds();
@@ -171,20 +187,17 @@ public class LamiHistogramViewer extends LamiXYChartViewer {
                     for (int j = 0; j < recs.length; j++) {
                         Rectangle rectangle = recs[j];
                         if (rectangle.contains(xMouseLocation, yMouseLocation)) {
-                            /* Save the current selection internally */
-                            setSelection(j);
-
-                            /* Signal all Lami viewers & views of the selection */
-                            LamiSelectionUpdateSignal signal = new LamiSelectionUpdateSignal(this,
-                                    (int) barSerie.getXSeries()[j], checkNotNull(getResultTable().hashCode()));
-                            TmfSignalManager.dispatchSignal(signal);
-
-                            redraw();
-                            return;
+                            selections.add((int) barSerie.getXSeries()[j]);
                         }
                     }
                 }
-                /* No rectangle under mouse redraw to update the graphic with no selection */
+
+                /* Save the current selection internally */
+                setSelection(selections);
+                /* Signal all Lami viewers & views of the selection */
+                LamiSelectionUpdateSignal signal = new LamiSelectionUpdateSignal(this,
+                        selections, checkNotNull(getResultTable().hashCode()));
+                TmfSignalManager.dispatchSignal(signal);
                 redraw();
             }
         }
@@ -225,11 +238,13 @@ public class LamiHistogramViewer extends LamiXYChartViewer {
             GC gc = e.gc;
 
             for (ISeries series : getChart().getSeriesSet().getSeries()) {
-                Rectangle rectangle = ((IBarSeries) series).getBounds()[getSelection()];
+                Color color = colorsIt.next();
+                for (int index : getSelection()) {
+                    Rectangle rectangle = ((IBarSeries) series).getBounds()[index];
+                    gc.setBackground(color);
+                    gc.fillRectangle(rectangle);
 
-                gc.setBackground(colorsIt.next());
-                gc.fillRectangle(rectangle);
-
+                }
             }
         }
     }

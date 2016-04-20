@@ -16,6 +16,7 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 import java.util.stream.DoubleStream;
 import java.util.stream.Stream;
 
@@ -326,10 +327,19 @@ public class LamiScatterViewer extends LamiXYChartViewer {
             int xMouseLocation = event.x;
             int yMouseLocation = event.y;
 
-            ISeries[] series = getChart().getSeriesSet().getSeries();
+            /* FIXME: handle CTRL-SHIFT removal */
 
-            /* Reset selection */
-            unsetSelection();
+            ISeries[] series = getChart().getSeriesSet().getSeries();
+            List<Integer> selections = getSelection();
+            /* Check for ctrl on click */
+            if ((event.stateMask & SWT.CTRL) != 0 ) {
+                /* Reset selection */
+                selections = getSelection();
+
+            } else {
+                unsetSelection();
+                selections = new ArrayList<>();
+            }
 
             for (ISeries oneSeries : series) {
                 ILineSeries lineSerie = (ILineSeries) oneSeries;
@@ -354,19 +364,19 @@ public class LamiScatterViewer extends LamiXYChartViewer {
                     }
                 }
                 if (closest != -1) {
+                    /* Translate to global index */
                     LamiTableEntry entry = fInternalEntryList.get(closest);
                     int index = getResultTable().getEntries().indexOf(entry);
-                    setSelection(index);
-
-                    /* Signal all Lami viewers & views of the selection */
-                    LamiSelectionUpdateSignal signal = new LamiSelectionUpdateSignal(this,
-                            index, checkNotNull(getResultTable().hashCode()));
-                    TmfSignalManager.dispatchSignal(signal);
-                    redraw();
+                    selections.add(index);
                     /* Do no iterate since we already found a match */
                     break;
                 }
             }
+            setSelection(selections);
+            /* Signal all Lami viewers & views of the selection */
+            LamiSelectionUpdateSignal signal = new LamiSelectionUpdateSignal(this,
+                    selections, checkNotNull(getResultTable().hashCode()));
+            TmfSignalManager.dispatchSignal(signal);
             redraw();
         }
     }
@@ -384,12 +394,14 @@ public class LamiScatterViewer extends LamiXYChartViewer {
             gc.setLineWidth(1);
             gc.setLineStyle(SWT.LINE_SOLID);
             for (ISeries series : getChart().getSeriesSet().getSeries()) {
-                /* Generate a cross for each selected dot */
-                org.eclipse.swt.graphics.Point point = series.getPixelCoordinates(getSelection());
-                /* Vertical line */
-                gc.drawLine(point.x, 0, point.x, getChart().getPlotArea().getSize().y);
-                /* Horizontal line */
-                gc.drawLine(0, point.y, getChart().getPlotArea().getSize().x, point.y);
+                for (int index : getInternalSelections()) {
+                    /* Generate a cross for each selected dot */
+                    org.eclipse.swt.graphics.Point point = series.getPixelCoordinates(index);
+                    /* Vertical line */
+                    gc.drawLine(point.x, 0 , point.x, getChart().getPlotArea().getSize().y);
+                    /* Horizontal line */
+                    gc.drawLine(0, point.y, getChart().getPlotArea().getSize().x, point.y);
+                }
             }
         }
     }
@@ -407,12 +419,15 @@ public class LamiScatterViewer extends LamiXYChartViewer {
         super.dispose();
     }
 
-    @Override
-    protected int getSelection() {
+
+    protected List<Integer> getInternalSelections() {
         /* Translate to internal table location */
-        int index = super.getSelection();
-        int internalIndex = fInternalEntryList.indexOf((getResultTable().getEntries().get(index)));
-        return internalIndex;
+        List<Integer> indexes = super.getSelection();
+        List<Integer> internalIndexes = indexes.stream()
+                .mapToInt(index -> fInternalEntryList.indexOf((getResultTable().getEntries().get(index))))
+                .boxed()
+                .collect(Collectors.toList());
+        return internalIndexes;
     }
 
 }

@@ -43,6 +43,9 @@ public class LamiLabelFormat extends Format {
 
             for (java.util.Map.Entry<@NonNull String, @NonNull Integer> entry : fMap.entrySet()) {
                 if (entry.getValue() == ((Double)obj).intValue()) {
+                    if (entry.getKey().isEmpty()) {
+                        return new StringBuffer("?");
+                    }
                     return toAppendTo.append(entry.getKey());
                 }
             }
