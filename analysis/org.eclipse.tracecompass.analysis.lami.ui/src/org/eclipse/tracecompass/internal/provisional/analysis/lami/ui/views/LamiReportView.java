@@ -207,8 +207,7 @@ public final class LamiReportView extends TmfView {
             switch (icfChartType) {
             /* Scatter chart can only map numerical value as X axis and Y axis. TimeStamp are numerical */
             case XY_SCATTER:
-                xColumn = xColumn.filter(aspect -> aspect.isNumerical());
-                yColumn = yColumn.filter(aspect -> aspect.isNumerical());
+                /* Do not do filtering on XY scatter chart option since we map non numerical value to dummy number to do label Y axis and X axis */
                 break;
             /* Histogram and pie charts accept either string or numerical value as X-axis and only numerical values make sense */
             case HISTOGRAM:

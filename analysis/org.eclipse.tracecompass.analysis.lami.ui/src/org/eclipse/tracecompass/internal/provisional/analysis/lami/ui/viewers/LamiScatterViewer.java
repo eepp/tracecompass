@@ -11,10 +11,15 @@ package org.eclipse.tracecompass.internal.provisional.analysis.lami.ui.viewers;
 import static org.eclipse.tracecompass.common.core.NonNullUtils.checkNotNull;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
+import java.util.TreeSet;
+import java.util.stream.DoubleStream;
 import java.util.stream.Stream;
 
+import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.PaintEvent;
@@ -29,6 +34,7 @@ import org.eclipse.tracecompass.common.core.format.DecimalUnitFormat;
 import org.eclipse.tracecompass.internal.provisional.analysis.lami.core.aspect.LamiTableEntryAspect;
 import org.eclipse.tracecompass.internal.provisional.analysis.lami.core.module.LamiChartModel;
 import org.eclipse.tracecompass.internal.provisional.analysis.lami.core.module.LamiChartModel.ChartType;
+import org.eclipse.tracecompass.internal.provisional.analysis.lami.core.module.LamiLabelFormat;
 import org.eclipse.tracecompass.internal.provisional.analysis.lami.core.module.LamiResultTable;
 import org.eclipse.tracecompass.internal.provisional.analysis.lami.core.module.LamiTableEntry;
 import org.eclipse.tracecompass.internal.provisional.analysis.lami.core.module.LamiTimeStampFormat;
@@ -41,6 +47,7 @@ import org.swtchart.ISeries.SeriesType;
 import org.swtchart.LineStyle;
 import org.swtchart.Range;
 
+import com.google.common.collect.HashBiMap;
 import com.google.common.collect.Iterators;
 
 /**
@@ -49,6 +56,13 @@ import com.google.common.collect.Iterators;
  * @author Jonathan Rajotte-Julien
  */
 public class LamiScatterViewer extends LamiXYChartViewer {
+
+    /*
+     * Since it is possible to graph non numerical sortable values an internal
+     * sorted list is necessary for graphing. Translation for index to the
+     * actual table is provided.
+     */
+    List<@NonNull LamiTableEntry> fInternalEntryList;
 
     /**
      * Constructor
@@ -66,87 +80,204 @@ public class LamiScatterViewer extends LamiXYChartViewer {
             throw new IllegalStateException();
         }
 
-        List<LamiTableEntry> entries = getResultTable().getEntries();
-        List<LamiTableEntryAspect> aspects = getResultTable().getTableClass().getAspects();
+        List<LamiTableEntryAspect> aspects = new ArrayList<>(getResultTable().getTableClass().getAspects());
 
-        /* Get the aspect for the X axis*/
+        /* Get the aspect for the X axis */
         LamiTableEntryAspect xAxisAspect = getAspectFromName(aspects, getChartModel().getXAxisColumn());
 
-        /* Scatter chart does not support non Numerical X axis */
+        /* When x axis is non numerical sort via it's comparator */
+        /* FIXME use the aspect comparator or whatever */
         if (!xAxisAspect.isNumerical()) {
-            throw new IllegalStateException();
-        }
+            /* For now compare based on string representation */
+            fInternalEntryList = new ArrayList<>(getResultTable().getEntries());
+            Collections.sort(fInternalEntryList, new Comparator<LamiTableEntry>() {
+                @Override
+                public int compare(@NonNull LamiTableEntry o1, @NonNull LamiTableEntry o2) {
+                    return checkNotNull(xAxisAspect.resolveString(o1)).compareToIgnoreCase(xAxisAspect.resolveString(o2));
+                }
 
-        /* Basic plot formatting based on the aspect type */
-        if (xAxisAspect.isTimeStamp()) {
-            /* Only apply a custom format on Timestamp */
-            IAxisTick xTick = getChart().getAxisSet().getXAxis(0).getTick();
-            xTick.setFormat(new LamiTimeStampFormat());
+            });
+        } else {
+            fInternalEntryList = getResultTable().getEntries();
         }
 
         /* Create X series */
         double[] xSerie;
+        HashBiMap<String, Integer> xMap = HashBiMap.create();
         boolean xIsLog = graphModel.xAxisIsLog();
 
-        if (xIsLog) {
-            /* Log axis does not support 0 values. Clamp them to 0.9 */
-            xSerie = entries.stream()
-                    .mapToDouble(entry -> xAxisAspect.resolveDouble(entry))
-                    .map(elem -> (elem < 0.9) ? 0.9 : elem)
-                    .toArray();
+        /* Create Y series */
+        if (xAxisAspect.isNumerical()) {
+            DoubleStream xSerieStream = fInternalEntryList.stream().mapToDouble(entry -> xAxisAspect.resolveDouble(entry));
+
+            if (xIsLog) {
+                /* Log axis does not support 0 values. Clamp them to 0.9 */
+                xSerieStream = xSerieStream.map(elem -> (elem < 0.9) ? 0.9 : elem);
+            }
+            xSerie = xSerieStream.toArray();
         } else {
-            xSerie = entries.stream()
-                    .mapToDouble(entry -> xAxisAspect.resolveDouble(entry))
-                    .toArray();
+            /*
+             * Create the categories map
+             */
+            for (LamiTableEntry entry : fInternalEntryList) {
+                if (!xMap.containsKey(xAxisAspect.resolveString(entry))) {
+                    /* Assign a number to the new category */
+                    xMap.put(checkNotNull(xAxisAspect.resolveString(entry)), xMap.size());
+                }
+            }
+            xSerie = fInternalEntryList.stream().mapToDouble(entry -> xMap.get(xAxisAspect.resolveString(entry))).toArray();
         }
 
-        /* Create Y series */
+        /*
+         * Create Y series
+         *
+         * FIXME: handle when series does not have the same type Possible
+         * Solution: simply prevent this a the dialog level on selection one or
+         * the other type but not both For now simple throw an IllegalState
+         * exception. FIXME: logScal should no be applied on non numerical value
+         * Dynamic dialog should mitigate most of this problem.
+         */
         boolean yIsLog = graphModel.yAxisIsLog();
 
-        for (String colName : getChartModel().getSeriesColumns()) {
-            LamiTableEntryAspect aspect = getAspectFromName(aspects, colName);
-            if (!aspect.isNumerical()) {
-                /* Only plot numerical aspects (parseDouble would fail below) */
-                continue;
+        List<LamiTableEntryAspect> yAspects = getYAxisAspects();
+        Boolean areYAspectsNumerical = false;
+        HashBiMap<String, Integer> yMap = HashBiMap.create();
+
+        /* Check all aspect are the same type */
+        for (LamiTableEntryAspect aspect : yAspects) {
+            if (aspect.isNumerical() == yAspects.get(0).isNumerical()) {
+                areYAspectsNumerical = aspect.isNumerical();
+            } else {
+                throw new IllegalStateException();
+            }
+        }
+
+        /*
+         * When yAspects are non-numerical create a map for all values of all
+         * series
+         */
+        /*
+         * FIXME: How to handle multiple series that might order differently ...
+         * who knows
+         */
+        if (!areYAspectsNumerical) {
+            TreeSet<String> set = new TreeSet<>();
+            for (LamiTableEntryAspect aspect : yAspects) {
+                for (LamiTableEntry entry : fInternalEntryList) {
+                    set.add(checkNotNull(aspect.resolveString(entry)));
+                }
+            }
+            /* Ordered label mapping to double */
+            for (String string : set) {
+                yMap.put(string, yMap.size());
             }
 
+        }
+
+        /* Plot the series */
+        for (LamiTableEntryAspect aspect : getYAxisAspects()) {
             String name = aspect.getName();
             double[] ySeries;
 
-            if (yIsLog) {
-                ySeries = entries.stream()
-                        .mapToDouble(entry -> aspect.resolveDouble(entry))
-                        /* Log axis does not support 0 values. Clamp them to 0.9 */
-                        .map(elem -> (elem < 0.9) ? 0.9 : elem)
-                        .toArray();
+            if (aspect.isNumerical()) {
+                if (yIsLog) {
+                    ySeries = fInternalEntryList.stream().mapToDouble(entry -> aspect.resolveDouble(entry))
+                            /*
+                             * Log axis does not support 0 values. Clamp them to
+                             * 0.9
+                             */
+                            .map(elem -> (elem < 0.9) ? 0.9 : elem).toArray();
+                } else {
+                    ySeries = fInternalEntryList.stream().mapToDouble(entry -> aspect.resolveDouble(entry)).toArray();
+                }
             } else {
-                ySeries = entries.stream()
-                        .mapToDouble(entry -> aspect.resolveDouble(entry))
-                        .toArray();
+                /* Map string to value */
+                if (yMap.isEmpty()) {
+                    /* Well something got very wrong during map creation */
+                    throw new IllegalStateException();
+                }
+                ySeries = fInternalEntryList.stream().mapToDouble(entry -> yMap.get(aspect.resolveString(entry))).toArray();
             }
 
             ILineSeries scatterSeries = (ILineSeries) getChart().getSeriesSet().createSeries(SeriesType.LINE, name);
             scatterSeries.setLineStyle(LineStyle.NONE);
+
             scatterSeries.setXSeries(xSerie);
             scatterSeries.setYSeries(ySeries);
-
-            /* TODO: change color per series */
-
-
-
         }
+
+        /* Modify x axis related chart styling */
+        IAxisTick xTick = getChart().getAxisSet().getXAxis(0).getTick();
+        if (xAxisAspect.isNumerical()) {
+            if (xAxisAspect.isTimeStamp()) {
+                /* Only apply a custom format on Timestamp */
+                xTick.setFormat(new LamiTimeStampFormat());
+            }
+        } else {
+            xTick.setFormat(new LamiLabelFormat(xMap));
+            int stepSizePixel = getChart().getPlotArea().getSize().x / ((xSerie.length != 0) ? xSerie.length - 1 : 1);
+            /*
+             * This step is a limitation on swtchart side regarding minimal grid
+             * step hint size. When the step size are smaller it get defined as
+             * the "default" value for the axis instead of the smallest one.
+             */
+            if (IAxisTick.MIN_GRID_STEP_HINT > stepSizePixel) {
+                stepSizePixel = (int) IAxisTick.MIN_GRID_STEP_HINT;
+            }
+            xTick.setTickMarkStepHint(stepSizePixel);
+
+            /* Remove vertical grid line */
+            getChart().getAxisSet().getXAxis(0).getGrid().setStyle(LineStyle.NONE);
+        }
+
+        /* Modify Y axis related chart styling */
+        IAxisTick yTick = getChart().getAxisSet().getYAxis(0).getTick();
+        if (areYAspectsNumerical) {
+            /* Set the formatter on the Y axis */
+            yTick.setFormat(new DecimalUnitFormat());
+        } else {
+            yTick.setFormat(new LamiLabelFormat(yMap));
+            /*
+             * Use xSerie length since it is exposed and is equal to the size of
+             * any y serie
+             */
+            int stepSizePixel = getChart().getPlotArea().getSize().y / ((xSerie.length != 0) ? xSerie.length - 1 : 1);
+            /*
+             * This step is a limitation on swtchart side regarding minimal grid
+             * step hint size. When the step size are smaller it get defined as
+             * the "default" value for the axis instead of the smallest one.
+             */
+            if (IAxisTick.MIN_GRID_STEP_HINT > stepSizePixel) {
+                stepSizePixel = (int) IAxisTick.MIN_GRID_STEP_HINT;
+            }
+            yTick.setTickMarkStepHint(stepSizePixel);
+
+            /* Remove horizontal grid line */
+            getChart().getAxisSet().getYAxis(0).getGrid().setStyle(LineStyle.NONE);
+        }
+
         setLineSeriesColor();
 
         getChart().getAxisSet().adjustRange();
 
         /* Put log scale if necessary */
-        Stream.of(getChart().getAxisSet().getYAxes()).forEach(axis -> axis.enableLogScale(yIsLog));
+
         Stream.of(getChart().getAxisSet().getXAxes()).forEach(axis -> axis.enableLogScale(xIsLog));
 
-        /* Set the formatter on the Y axis */
-        getChart().getAxisSet().getYAxis(0).getTick().setFormat(new DecimalUnitFormat());
+        if (xIsLog && xAxisAspect.isNumerical() && !xAxisAspect.isTimeStamp()) {
+            Stream.of(getChart().getAxisSet().getXAxes()).forEach(axis -> axis.enableLogScale(xIsLog));
+            /*
+             * In case of a log Y axis, bump the X axis to hide the "fake" 0.9
+             * values.
+             */
+            Range yRange = getChart().getAxisSet().getXAxis(0).getRange();
+            getChart().getAxisSet().getXAxis(0).setRange(new Range(0.9, yRange.upper));
+        }
 
-        if (yIsLog) {
+        if (yIsLog && areYAspectsNumerical) {
+            /* Set the axis as logscale */
+            Stream.of(getChart().getAxisSet().getYAxes()).forEach(axis -> axis.enableLogScale(yIsLog));
+
             /*
              * In case of a log Y axis, bump the X axis to hide the "fake" 0.9
              * values.
@@ -155,9 +286,7 @@ public class LamiScatterViewer extends LamiXYChartViewer {
             getChart().getAxisSet().getYAxis(0).setRange(new Range(0.9, yRange.upper));
         }
 
-        getChart().getPlotArea().addListener(SWT.MouseDown,new LamiScatterMouseDownListener());
-
-
+        getChart().getPlotArea().addListener(SWT.MouseDown, new LamiScatterMouseDownListener());
         getChart().getPlotArea().addPaintListener(new LamiScatterPainterListener());
 
         /* Register to receive LamiSelectionUpdateSignal */
@@ -174,7 +303,10 @@ public class LamiScatterViewer extends LamiXYChartViewer {
 
         for (ISeries series : getChart().getSeriesSet().getSeries()) {
             ((ILineSeries) series).setSymbolColor((colorsIt.next()));
-            /* Generate initial array of Color to enable per point color change on selection in the future */
+            /*
+             * Generate initial array of Color to enable per point color change
+             * on selection in the future
+             */
             ArrayList<Color> colors = new ArrayList<>();
             for (int i = 0; i < series.getXSeries().length; i++) {
                 Color color = ((ILineSeries) series).getSymbolColor();
@@ -191,6 +323,8 @@ public class LamiScatterViewer extends LamiXYChartViewer {
             if (event == null) {
                 return;
             }
+            int xMouseLocation = event.x;
+            int yMouseLocation = event.y;
 
             ISeries[] series = getChart().getSeriesSet().getSeries();
 
@@ -199,30 +333,44 @@ public class LamiScatterViewer extends LamiXYChartViewer {
 
             for (ISeries oneSeries : series) {
                 ILineSeries lineSerie = (ILineSeries) oneSeries;
-                for (int xSeriesIndex = 0; xSeriesIndex < lineSerie.getXSeries().length; xSeriesIndex++) {
-                    org.eclipse.swt.graphics.Point dataPoint = lineSerie.getPixelCoordinates(xSeriesIndex);
+
+                int closest = -1;
+                double closestDistance = -1;
+                for (int i = 0; i < lineSerie.getXSeries().length; i++) {
+                    org.eclipse.swt.graphics.Point dataPoint = lineSerie.getPixelCoordinates(i);
 
                     /*
-                     * Find the distance between the data point and the mouse location
-                     * and compare it to the symbol size so when a user click on a symbol it select it.
+                     * Find the distance between the data point and the mouse
+                     * location and compare it to the symbol size so when a user
+                     * click on a symbol it select it.
                      */
-                    double distance = Math.hypot(dataPoint.x - event.x, dataPoint.y - event.y);
+
+                    double distance = Math.hypot(dataPoint.x - xMouseLocation, dataPoint.y - yMouseLocation);
                     if (distance < lineSerie.getSymbolSize()) {
-                        setSelection(xSeriesIndex);
-
-                        /* Signal all Lami viewers & views of the selection */
-                        LamiSelectionUpdateSignal signal = new LamiSelectionUpdateSignal(this,
-                                xSeriesIndex, checkNotNull(getResultTable().hashCode()));
-                        TmfSignalManager.dispatchSignal(signal);
-
-                        redraw();
+                        if (closestDistance == -1 || distance < closestDistance) {
+                            closest = i;
+                            closestDistance = distance;
+                        }
                     }
                 }
-            }
+                if (closest != -1) {
+                    LamiTableEntry entry = fInternalEntryList.get(closest);
+                    int index = getResultTable().getEntries().indexOf(entry);
+                    setSelection(index);
 
+                    /* Signal all Lami viewers & views of the selection */
+                    LamiSelectionUpdateSignal signal = new LamiSelectionUpdateSignal(this,
+                            index, checkNotNull(getResultTable().hashCode()));
+                    TmfSignalManager.dispatchSignal(signal);
+                    redraw();
+                    /* Do no iterate since we already found a match */
+                    break;
+                }
+            }
             redraw();
         }
     }
+
 
     private final class LamiScatterPainterListener implements PaintListener {
         @Override
@@ -251,13 +399,20 @@ public class LamiScatterViewer extends LamiXYChartViewer {
      */
     @Override
     protected void refreshDisplayLabels() {
-
     }
 
     @Override
     public void dispose() {
         TmfSignalManager.deregister(this);
         super.dispose();
+    }
+
+    @Override
+    protected int getSelection() {
+        /* Translate to internal table location */
+        int index = super.getSelection();
+        int internalIndex = fInternalEntryList.indexOf((getResultTable().getEntries().get(index)));
+        return internalIndex;
     }
 
 }
