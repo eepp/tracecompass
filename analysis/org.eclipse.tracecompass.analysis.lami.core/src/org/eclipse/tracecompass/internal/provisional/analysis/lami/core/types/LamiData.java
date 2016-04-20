@@ -50,7 +50,7 @@ public abstract class LamiData {
         PATH("path", "Path", false, null, LamiPath.class), //$NON-NLS-1$ //$NON-NLS-2$
         FD("fd", "File descriptor", true, null, LamiFileDescriptor.class), //$NON-NLS-1$ //$NON-NLS-2$
         IRQ("irq", "IRQ", false, null, LamiIRQ.class), //$NON-NLS-1$ //$NON-NLS-2$
-        CPU("cpu", "CPU", true, null, LamiCPU.class), //$NON-NLS-1$ //$NON-NLS-2$
+        CPU("cpu", "CPU", false, null, LamiCPU.class), //$NON-NLS-1$ //$NON-NLS-2$
         DISK("disk", "Disk", false, null, LamiDisk.class), //$NON-NLS-1$ //$NON-NLS-2$
         PART("part", "Disk partition", false, null, LamiDiskPartition.class), //$NON-NLS-1$ //$NON-NLS-2$
         NETIF("netif", "Network interface", false, null, LamiNetworkInterface.class), //$NON-NLS-1$ //$NON-NLS-2$
