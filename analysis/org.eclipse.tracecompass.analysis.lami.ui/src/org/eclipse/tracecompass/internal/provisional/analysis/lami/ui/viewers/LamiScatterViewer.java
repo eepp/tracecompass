@@ -329,15 +329,19 @@ public class LamiScatterViewer extends LamiXYChartViewer {
             int xMouseLocation = event.x;
             int yMouseLocation = event.y;
 
-            /* FIXME: handle CTRL-SHIFT removal */
+            boolean unselectMode = false;
 
             ISeries[] series = getChart().getSeriesSet().getSeries();
             Set<Integer> selections = getSelection();
+
             /* Check for ctrl on click */
             if ((event.stateMask & SWT.CTRL) != 0 ) {
-                /* Reset selection */
-                selections = getSelection();
-
+                if ((event.stateMask & SWT.SHIFT) != 0) {
+                    unselectMode = true;
+                } else {
+                    /* Reset selection */
+                    selections = getSelection();
+                }
             } else {
                 unsetSelection();
                 selections = new HashSet<>();
@@ -369,7 +373,11 @@ public class LamiScatterViewer extends LamiXYChartViewer {
                     /* Translate to global index */
                     LamiTableEntry entry = fInternalEntryList.get(closest);
                     int index = getResultTable().getEntries().indexOf(entry);
-                    selections.add(index);
+                    if (unselectMode) {
+                        selections.remove(index);
+                    } else {
+                        selections.add(index);
+                    }
                     /* Do no iterate since we already found a match */
                     break;
                 }
