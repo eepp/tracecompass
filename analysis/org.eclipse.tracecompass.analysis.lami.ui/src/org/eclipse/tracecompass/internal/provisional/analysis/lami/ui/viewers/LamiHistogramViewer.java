@@ -11,11 +11,12 @@ package org.eclipse.tracecompass.internal.provisional.analysis.lami.ui.viewers;
 
 import static org.eclipse.tracecompass.common.core.NonNullUtils.checkNotNull;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import org.eclipse.jdt.annotation.Nullable;
@@ -156,19 +157,23 @@ public class LamiHistogramViewer extends LamiXYChartViewer {
     private final class LamiHistogramMouseDownListener implements Listener {
         @Override
         public void handleEvent(@Nullable Event event) {
+            boolean deletionMode = false;
             if (event != null) {
                 int xMouseLocation = event.x;
                 int yMouseLocation = event.y;
 
-                List<Integer> selections;
+                Set<Integer> selections;
                 if ((event.stateMask & SWT.CTRL) != 0 ) {
+                    if ((event.stateMask & SWT.SHIFT) != 0) {
+                        deletionMode = true;
+                    }
                     /* Reset selection */
                     selections = getSelection();
 
                 } else {
                     /* Reset selection state*/
                     unsetSelection();
-                    selections = new ArrayList<>();
+                    selections = new HashSet<>();
                 }
 
                 ISeries[] series = getChart().getSeriesSet().getSeries();

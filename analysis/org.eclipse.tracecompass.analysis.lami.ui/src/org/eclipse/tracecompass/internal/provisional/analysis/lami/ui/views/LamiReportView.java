@@ -12,8 +12,8 @@ package org.eclipse.tracecompass.internal.provisional.analysis.lami.ui.views;
 import static org.eclipse.tracecompass.common.core.NonNullUtils.checkNotNull;
 import static org.eclipse.tracecompass.common.core.NonNullUtils.nullToEmptyString;
 
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -73,7 +73,7 @@ public final class LamiReportView extends TmfView {
     private final Set<LamiViewerControl> fPredefGraphViewerControls = new LinkedHashSet<>();
     private final Set<LamiViewerControl> fCustomGraphViewerControls = new LinkedHashSet<>();
     private @Nullable SashForm fSashForm;
-    private List<Integer> fSelectionIndexes;
+    private Set<Integer> fSelectionIndexes;
 
     // ------------------------------------------------------------------------
     // Constructor
@@ -85,7 +85,7 @@ public final class LamiReportView extends TmfView {
     public LamiReportView() {
         super(VIEW_ID);
         fResultTable = LamiReportViewFactory.getCurrentResultTable();
-        fSelectionIndexes = new ArrayList<>();
+        fSelectionIndexes = new HashSet<>();
         /* Register to receive LamiSelectionUpdateSignal */
         TmfSignalManager.register(this);
     }
@@ -366,7 +366,7 @@ public final class LamiReportView extends TmfView {
         }
 
         if (signal.getEntryIndex().size() == 1) {
-            LamiTimeRange timeRange = table.getEntries().get(signal.getEntryIndex().get(0)).getCorrespondingTimeRange();
+            LamiTimeRange timeRange = table.getEntries().get((int) (signal.getEntryIndex().toArray())[0]).getCorrespondingTimeRange();
             if (timeRange != null) {
                 /* Send Range update to other views */
                 ITmfTimestamp start = TmfTimestamp.fromNanos(timeRange.getStart());
@@ -397,7 +397,7 @@ public final class LamiReportView extends TmfView {
         }
         TmfTimeRange range = new TmfTimeRange(signal.getBeginTime(), signal.getEndTime());
 
-        List<Integer> selections = new ArrayList<>();
+        Set<Integer> selections = new HashSet<>();
         for (LamiTableEntry entry : table.getEntries()) {
             LamiTimeRange timerange = entry.getCorrespondingTimeRange();
             if (timerange == null) {

@@ -13,7 +13,9 @@ import static org.eclipse.tracecompass.common.core.NonNullUtils.checkNotNull;
 import static org.eclipse.tracecompass.common.core.NonNullUtils.nullToEmptyString;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.function.ToDoubleFunction;
 
 import org.eclipse.jdt.annotation.NonNull;
@@ -109,7 +111,7 @@ public abstract class LamiXYChartViewer extends TmfViewer implements ILamiViewer
     private final String fYTitle;
 
     private boolean fSelected;
-    private List<Integer> fSelection;
+    private Set<Integer> fSelection;
 
     /**
      * Creates a Viewer instance based on SWTChart.
@@ -128,7 +130,7 @@ public abstract class LamiXYChartViewer extends TmfViewer implements ILamiViewer
         fParent = parent;
         fResultTable = resultTable;
         fChartModel = chartModel;
-        fSelection = new ArrayList<>();
+        fSelection = new HashSet<>();
 
         fChart = new Chart(parent, SWT.NONE);
         fChart.addListener(SWT.Resize, fResizeListener);
@@ -225,7 +227,7 @@ public abstract class LamiXYChartViewer extends TmfViewer implements ILamiViewer
      *
      * @param selection the index to select.
      */
-    protected void setSelection(List<Integer> selection) {
+    protected void setSelection(Set<Integer> selection) {
         fSelection = selection;
         fSelected = true;
     }
@@ -243,7 +245,7 @@ public abstract class LamiXYChartViewer extends TmfViewer implements ILamiViewer
      *
      * @return the current selection index.
      */
-    protected List<Integer> getSelection() {
+    protected Set<Integer> getSelection() {
         return fSelection;
     }
 

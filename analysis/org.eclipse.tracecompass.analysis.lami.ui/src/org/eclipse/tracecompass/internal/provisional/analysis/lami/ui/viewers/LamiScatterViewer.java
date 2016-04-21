@@ -13,8 +13,10 @@ import static org.eclipse.tracecompass.common.core.NonNullUtils.checkNotNull;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 import java.util.stream.DoubleStream;
@@ -330,7 +332,7 @@ public class LamiScatterViewer extends LamiXYChartViewer {
             /* FIXME: handle CTRL-SHIFT removal */
 
             ISeries[] series = getChart().getSeriesSet().getSeries();
-            List<Integer> selections = getSelection();
+            Set<Integer> selections = getSelection();
             /* Check for ctrl on click */
             if ((event.stateMask & SWT.CTRL) != 0 ) {
                 /* Reset selection */
@@ -338,7 +340,7 @@ public class LamiScatterViewer extends LamiXYChartViewer {
 
             } else {
                 unsetSelection();
-                selections = new ArrayList<>();
+                selections = new HashSet<>();
             }
 
             for (ISeries oneSeries : series) {
@@ -420,13 +422,13 @@ public class LamiScatterViewer extends LamiXYChartViewer {
     }
 
 
-    protected List<Integer> getInternalSelections() {
+    protected Set<Integer> getInternalSelections() {
         /* Translate to internal table location */
-        List<Integer> indexes = super.getSelection();
-        List<Integer> internalIndexes = indexes.stream()
+        Set<Integer> indexes = super.getSelection();
+        Set<Integer> internalIndexes = indexes.stream()
                 .mapToInt(index -> fInternalEntryList.indexOf((getResultTable().getEntries().get(index))))
                 .boxed()
-                .collect(Collectors.toList());
+                .collect(Collectors.toSet());
         return internalIndexes;
     }
 

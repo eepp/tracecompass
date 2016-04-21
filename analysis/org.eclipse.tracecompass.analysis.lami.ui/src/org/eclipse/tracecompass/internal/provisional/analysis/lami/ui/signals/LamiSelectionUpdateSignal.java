@@ -9,8 +9,8 @@
 
 package org.eclipse.tracecompass.internal.provisional.analysis.lami.ui.signals;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.eclipse.tracecompass.tmf.core.signal.TmfSignal;
 
@@ -21,7 +21,7 @@ import org.eclipse.tracecompass.tmf.core.signal.TmfSignal;
  */
 public class LamiSelectionUpdateSignal extends TmfSignal {
 
-    private final List<Integer> fEntryIndexList;
+    private final Set<Integer> fEntryIndexList;
     private final int fSignalHash;
 
     /**
@@ -34,9 +34,9 @@ public class LamiSelectionUpdateSignal extends TmfSignal {
      * @param signalHash
      *            The hash for exclusivity signaling
      */
-    public LamiSelectionUpdateSignal(Object source, List<Integer> entryIndexList, int signalHash) {
+    public LamiSelectionUpdateSignal(Object source, Set<Integer> entryIndexList, int signalHash) {
         super(source);
-        fEntryIndexList = new ArrayList<>(entryIndexList);
+        fEntryIndexList = new HashSet<>(entryIndexList);
         fSignalHash = signalHash;
     }
 
@@ -52,7 +52,7 @@ public class LamiSelectionUpdateSignal extends TmfSignal {
      * @return
      *          The new selected entry
      */
-    public List<Integer> getEntryIndex() {
+    public Set<Integer> getEntryIndex() {
         return fEntryIndexList;
     }
 

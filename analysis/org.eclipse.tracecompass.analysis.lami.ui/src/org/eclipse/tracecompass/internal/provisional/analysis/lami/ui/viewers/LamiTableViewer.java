@@ -13,8 +13,9 @@ package org.eclipse.tracecompass.internal.provisional.analysis.lami.ui.viewers;
 import static org.eclipse.tracecompass.common.core.NonNullUtils.checkNotNull;
 import static org.eclipse.tracecompass.common.core.NonNullUtils.nullToEmptyString;
 
-import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jface.action.IMenuManager;
@@ -87,7 +88,7 @@ public final class LamiTableViewer extends TmfSimpleTableViewer implements ILami
             IStructuredSelection selections =  getTableViewer().getStructuredSelection();
             //LamiTableEntry selectedEntry = (LamiTableEntry) selections.getFirstElement();
 
-            List<Integer> selectionIndexes = new ArrayList<>();
+            Set<Integer> selectionIndexes = new HashSet<>();
             for (Object selectedEntry : selections.toArray() ) {
                 selectionIndexes.add(fResultTable.getEntries().indexOf(selectedEntry));
             }
@@ -202,7 +203,7 @@ public final class LamiTableViewer extends TmfSimpleTableViewer implements ILami
         /* Fetch the position of the selected entry in the actual table since it could be sorted by another column */
         LamiTableContentProvider latencyContentProvider = (LamiTableContentProvider) getTableViewer().getContentProvider();
 
-        @Nullable List<Integer> selections = signal.getEntryIndex();
+        @Nullable Set<Integer> selections = signal.getEntryIndex();
         if (selections == null) {
             getTableViewer().getTable().deselectAll();
             return;
