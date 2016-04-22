@@ -5,6 +5,9 @@ import java.util.List;
 import java.util.stream.IntStream;
 
 import org.eclipse.jdt.annotation.Nullable;
+import org.eclipse.jface.viewers.ISelectionChangedListener;
+import org.eclipse.jface.viewers.SelectionChangedEvent;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Button;
@@ -12,6 +15,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.tracecompass.internal.provisional.analysis.lami.core.aspect.LamiTableEntryAspect;
 import org.eclipse.ui.dialogs.ListDialog;
 import static org.eclipse.tracecompass.common.core.NonNullUtils.checkNotNull;
 
@@ -59,6 +63,18 @@ public class LamiAxisListDialog extends ListDialog {
                 }
             }
         }
+        getTableViewer().addSelectionChangedListener(new ISelectionChangedListener() {
+
+            @Override
+            public void selectionChanged(@Nullable SelectionChangedEvent event) {
+                if (event != null) {
+                    List<LamiTableEntryAspect> selections = ((StructuredSelection) (event.getSelection())).toList();
+                    for (LamiTableEntryAspect selection : selections) {
+                        System.out.println(selection.getName());
+                    }
+                }
+            }
+        });
 
         return parent;
     }

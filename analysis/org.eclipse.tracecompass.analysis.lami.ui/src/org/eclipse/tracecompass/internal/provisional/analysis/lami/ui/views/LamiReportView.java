@@ -222,8 +222,8 @@ public final class LamiReportView extends TmfView {
             }
 
             /* Prepare dialogs input */
-            List<String> xStringColumn = xColumn.map(aspect -> aspect.getName()).collect(Collectors.toList());
-            List<String> yStringColumn = yColumn.map(aspect -> aspect.getName()).collect(Collectors.toList());
+            List<LamiTableEntryAspect> xStringColumn = xColumn.collect(Collectors.toList());
+            List<LamiTableEntryAspect> yStringColumn = yColumn.collect(Collectors.toList());
 
 
             /* X axis dialog */
@@ -232,7 +232,7 @@ public final class LamiReportView extends TmfView {
             dialog.setLabelProvider(new LabelProvider() {
                 @Override
                 public String getText(@Nullable Object element) {
-                    return (String) checkNotNull(element);
+                    return ((LamiTableEntryAspect) checkNotNull(element)).getName();
                 }
             });
             dialog.setInput(xStringColumn);
@@ -264,7 +264,7 @@ public final class LamiReportView extends TmfView {
             boolean[] checkBoxOptionsResults = dialog.getCheckBoxOptionValues();
 
             String xAxisCol = Arrays.stream(results)
-                .map(elem -> { return (String) elem;} )
+                .map(elem -> { return ((LamiTableEntryAspect)elem).getName();} )
                 .findFirst()
                 .get();
 
@@ -280,7 +280,7 @@ public final class LamiReportView extends TmfView {
                     new LabelProvider() {
                         @Override
                         public String getText(@Nullable Object element) {
-                            return (String) checkNotNull(element);
+                            return ((LamiTableEntryAspect) checkNotNull(element)).getName();
                         }
                     },
                     nullToEmptyString(Messages.LamiReportView_SelectColumnsForSeries));
@@ -307,7 +307,7 @@ public final class LamiReportView extends TmfView {
             checkBoxOptionsResults = dialog2.getCheckBoxOptionValues();
 
             List<String> seriesCols = Arrays.stream(results)
-                .map(elem -> { return (String) elem;} )
+                .map(elem -> { return ((LamiTableEntryAspect)elem).getName();} )
                 .collect(Collectors.toList());
 
             /* Get Y log scale option */
