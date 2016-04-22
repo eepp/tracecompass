@@ -229,7 +229,7 @@ public abstract class LamiXYChartViewer extends TmfViewer implements ILamiViewer
      */
     protected void setSelection(Set<Integer> selection) {
         fSelection = selection;
-        fSelected = true;
+        fSelected = !selection.isEmpty();
     }
 
     /**
@@ -256,7 +256,9 @@ public abstract class LamiXYChartViewer extends TmfViewer implements ILamiViewer
 
     @Override
     public void refresh() {
-        fChart.redraw();
+        Display.getDefault().asyncExec(() -> {
+            fChart.redraw();
+        });
     }
 
     @Override
@@ -367,7 +369,7 @@ public abstract class LamiXYChartViewer extends TmfViewer implements ILamiViewer
      * Redraw the chart.
      */
     protected void redraw() {
-        getChart().redraw();
+        refresh();
     }
 
     /**

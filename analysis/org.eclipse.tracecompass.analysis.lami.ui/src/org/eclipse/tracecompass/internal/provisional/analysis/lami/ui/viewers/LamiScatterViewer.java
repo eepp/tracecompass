@@ -387,7 +387,7 @@ public class LamiScatterViewer extends LamiXYChartViewer {
             LamiSelectionUpdateSignal signal = new LamiSelectionUpdateSignal(this,
                     selections, checkNotNull(getResultTable().hashCode()));
             TmfSignalManager.dispatchSignal(signal);
-            redraw();
+            refresh();
         }
     }
 

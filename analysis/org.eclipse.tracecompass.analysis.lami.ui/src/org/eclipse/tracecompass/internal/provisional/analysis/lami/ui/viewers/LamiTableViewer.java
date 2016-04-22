@@ -214,9 +214,10 @@ public final class LamiTableViewer extends TmfSimpleTableViewer implements ILami
             return latencyContentProvider.getIndexOf(entry);
         }).toArray();
 
-        getTableViewer().getTable().setSelection(selectionsIndexes);
-        getTableViewer().refresh();
-
+        Display.getDefault().asyncExec(() -> {
+            getTableViewer().getTable().setSelection(selectionsIndexes);
+            getTableViewer().getTable().redraw();
+        });
     }
 
     @Override
