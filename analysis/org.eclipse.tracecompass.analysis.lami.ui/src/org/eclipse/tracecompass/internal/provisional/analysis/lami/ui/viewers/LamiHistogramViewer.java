@@ -157,19 +157,15 @@ public class LamiHistogramViewer extends LamiXYChartViewer {
     private final class LamiHistogramMouseDownListener implements Listener {
         @Override
         public void handleEvent(@Nullable Event event) {
-            boolean unselectMode = false;
+            boolean ctrlMode = false;
             if (event != null) {
                 int xMouseLocation = event.x;
                 int yMouseLocation = event.y;
 
                 Set<Integer> selections;
-                if ((event.stateMask & SWT.CTRL) != 0 ) {
-                    if ((event.stateMask & SWT.SHIFT) != 0) {
-                        unselectMode = true;
-                    }
-                    /* Reset selection */
+                if ((event.stateMask & SWT.CTRL) != 0) {
+                    ctrlMode = true;
                     selections = getSelection();
-
                 } else {
                     /* Reset selection state*/
                     unsetSelection();
@@ -192,10 +188,11 @@ public class LamiHistogramViewer extends LamiXYChartViewer {
                     for (int j = 0; j < recs.length; j++) {
                         Rectangle rectangle = recs[j];
                         if (rectangle.contains(xMouseLocation, yMouseLocation)) {
-                            if (unselectMode) {
-                                selections.remove((int) barSerie.getXSeries()[j]);
+                            int index = (int) barSerie.getXSeries()[j];
+                            if (ctrlMode && selections.contains(index)) {
+                                selections.remove(index);
                             } else {
-                                selections.add((int) barSerie.getXSeries()[j]);
+                                selections.add(index);
                             }
                         }
                     }

@@ -384,8 +384,6 @@ public abstract class LamiXYChartViewer extends TmfViewer implements ILamiViewer
             /* The signal is not for us */
             return;
         }
-
-        /* Update the rectangle to be custom painted for selection visual reference */
         setSelection(signal.getEntryIndex());
 
         redraw();
