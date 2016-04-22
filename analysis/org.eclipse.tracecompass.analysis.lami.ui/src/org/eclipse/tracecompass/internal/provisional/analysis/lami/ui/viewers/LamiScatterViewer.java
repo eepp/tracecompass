@@ -19,7 +19,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
-import java.util.stream.DoubleStream;
 import java.util.stream.Stream;
 
 import org.eclipse.jdt.annotation.NonNull;
@@ -111,13 +110,21 @@ public class LamiScatterViewer extends LamiXYChartViewer {
 
         /* Create Y series */
         if (xAxisAspect.isNumerical()) {
-            DoubleStream xSerieStream = fInternalEntryList.stream().mapToDouble(entry -> xAxisAspect.resolveDouble(entry));
+            xSerie = fInternalEntryList.stream()
+                    .mapToDouble(entry -> xAxisAspect.resolveDouble(entry))
+                    .toArray();
 
             if (xIsLog) {
                 /* Log axis does not support 0 values. Clamp them to 0.9 */
-                xSerieStream = xSerieStream.map(elem -> (elem < 0.9) ? 0.9 : elem);
+                xSerie = fInternalEntryList.stream()
+                        .mapToDouble(entry -> xAxisAspect.resolveDouble(entry))
+                        .map(elem -> (elem < 0.9) ? 0.9 : elem)
+                        .toArray();
+            } else {
+                xSerie = fInternalEntryList.stream()
+                        .mapToDouble(entry -> xAxisAspect.resolveDouble(entry))
+                        .toArray();
             }
-            xSerie = xSerieStream.toArray();
         } else {
             /*
              * Create the categories map
@@ -134,13 +141,13 @@ public class LamiScatterViewer extends LamiXYChartViewer {
         /*
          * Create Y series
          *
-         * FIXME: handle when series does not have the same type Possible
+         * FIXME: handle when series does not have the same type. Possible
          * Solution: simply prevent this a the dialog level on selection one or
          * the other type but not both For now simple throw an IllegalState
-         * exception. FIXME: logScal should no be applied on non numerical value
+         * exception.
          * Dynamic dialog should mitigate most of this problem.
          */
-        boolean yIsLog = graphModel.yAxisIsLog();
+
 
         List<LamiTableEntryAspect> yAspects = getYAxisAspects();
         Boolean areYAspectsNumerical = false;
@@ -177,6 +184,8 @@ public class LamiScatterViewer extends LamiXYChartViewer {
 
         }
 
+        boolean yIsLog = graphModel.yAxisIsLog();
+
         /* Plot the series */
         for (LamiTableEntryAspect aspect : getYAxisAspects()) {
             String name = aspect.getName();
@@ -184,19 +193,22 @@ public class LamiScatterViewer extends LamiXYChartViewer {
 
             if (aspect.isNumerical()) {
                 if (yIsLog) {
-                    ySeries = fInternalEntryList.stream().mapToDouble(entry -> aspect.resolveDouble(entry))
-                            /*
-                             * Log axis does not support 0 values. Clamp them to
-                             * 0.9
-                             */
-                            .map(elem -> (elem < 0.9) ? 0.9 : elem).toArray();
+                    /*
+                     * Log axis does not support 0 values. Clamp them to 0.9
+                     */
+                    ySeries = fInternalEntryList.stream()
+                            .mapToDouble(entry -> aspect.resolveDouble(entry))
+                            .map(elem -> (elem < 0.9) ? 0.9 : elem)
+                            .toArray();
                 } else {
-                    ySeries = fInternalEntryList.stream().mapToDouble(entry -> aspect.resolveDouble(entry)).toArray();
+                    ySeries = fInternalEntryList.stream()
+                            .mapToDouble(entry -> aspect.resolveDouble(entry))
+                            .toArray();
                 }
             } else {
                 /* Map string to value */
                 if (yMap.isEmpty()) {
-                    /* Well something got very wrong during map creation */
+                    /* Well something has gone very bad during map creation */
                     throw new IllegalStateException();
                 }
                 ySeries = fInternalEntryList.stream().mapToDouble(entry -> yMap.get(aspect.resolveString(entry))).toArray();
@@ -264,9 +276,6 @@ public class LamiScatterViewer extends LamiXYChartViewer {
         getChart().getAxisSet().adjustRange();
 
         /* Put log scale if necessary */
-
-        Stream.of(getChart().getAxisSet().getXAxes()).forEach(axis -> axis.enableLogScale(xIsLog));
-
         if (xIsLog && xAxisAspect.isNumerical() && !xAxisAspect.isTimeStamp()) {
             Stream.of(getChart().getAxisSet().getXAxes()).forEach(axis -> axis.enableLogScale(xIsLog));
             /*
@@ -427,6 +436,11 @@ public class LamiScatterViewer extends LamiXYChartViewer {
     }
 
 
+    /**
+     * Return the current selection in internal mapping
+     *
+     * @return the internal selections
+     */
     protected Set<Integer> getInternalSelections() {
         /* Translate to internal table location */
         Set<Integer> indexes = super.getSelection();

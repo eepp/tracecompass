@@ -200,8 +200,6 @@ public final class LamiReportView extends TmfView {
                     .filter(aspect -> !(aspect instanceof LamiEmptyAspect)).collect(Collectors.toList());
 
             /* Split into 2 collection for X and Y dialog */
-
-            /* xColumn is used to represent either X-axis and categories*/
             Stream<@NonNull LamiTableEntryAspect> xColumn = column.stream();
             Stream<@NonNull LamiTableEntryAspect> yColumn  = column.stream();
 
