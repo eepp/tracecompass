@@ -21,7 +21,7 @@ import org.eclipse.tracecompass.tmf.core.signal.TmfSignal;
  */
 public class LamiSelectionUpdateSignal extends TmfSignal {
 
-    private final Set<Integer> fEntryIndexList;
+    private final Set<Integer> fEntryIndexes;
     private final int fSignalHash;
 
     /**
@@ -36,14 +36,14 @@ public class LamiSelectionUpdateSignal extends TmfSignal {
      */
     public LamiSelectionUpdateSignal(Object source, Set<Integer> entryIndexList, int signalHash) {
         super(source);
-        fEntryIndexList = new HashSet<>(entryIndexList);
+        fEntryIndexes = new HashSet<>(entryIndexList);
         fSignalHash = signalHash;
     }
 
 
     @Override
     public String toString() {
-        return "[" + this.getClass().getSimpleName() + " (" + fEntryIndexList + ")]"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+        return "[" + this.getClass().getSimpleName() + " (" + fEntryIndexes + ")]"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
     }
 
     /**
@@ -53,7 +53,7 @@ public class LamiSelectionUpdateSignal extends TmfSignal {
      *          The new selected entry
      */
     public Set<Integer> getEntryIndex() {
-        return fEntryIndexList;
+        return fEntryIndexes;
     }
 
 
