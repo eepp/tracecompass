@@ -26,6 +26,7 @@ import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
@@ -352,7 +353,7 @@ public class LamiScatterViewer extends LamiXYChartViewer {
                 int closest = -1;
                 double closestDistance = -1;
                 for (int i = 0; i < lineSerie.getXSeries().length; i++) {
-                    org.eclipse.swt.graphics.Point dataPoint = lineSerie.getPixelCoordinates(i);
+                    Point dataPoint = lineSerie.getPixelCoordinates(i);
 
                     /*
                      * Find the distance between the data point and the mouse
@@ -405,7 +406,7 @@ public class LamiScatterViewer extends LamiXYChartViewer {
             for (ISeries series : getChart().getSeriesSet().getSeries()) {
                 for (int index : getInternalSelections()) {
                     /* Generate a cross for each selected dot */
-                    org.eclipse.swt.graphics.Point point = series.getPixelCoordinates(index);
+                    Point point = series.getPixelCoordinates(index);
                     /* Vertical line */
                     gc.drawLine(point.x, 0 , point.x, getChart().getPlotArea().getSize().y);
                     /* Horizontal line */
