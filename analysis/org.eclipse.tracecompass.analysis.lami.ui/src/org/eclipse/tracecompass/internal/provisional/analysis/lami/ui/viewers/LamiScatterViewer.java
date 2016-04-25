@@ -12,7 +12,6 @@ import static org.eclipse.tracecompass.common.core.NonNullUtils.checkNotNull;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -21,7 +20,6 @@ import java.util.TreeSet;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.PaintEvent;
@@ -92,12 +90,10 @@ public class LamiScatterViewer extends LamiXYChartViewer {
         if (!xAxisAspect.isNumerical()) {
             /* For now compare based on string representation */
             fInternalEntryList = new ArrayList<>(getResultTable().getEntries());
-            Collections.sort(fInternalEntryList, new Comparator<LamiTableEntry>() {
-                @Override
-                public int compare(@NonNull LamiTableEntry o1, @NonNull LamiTableEntry o2) {
-                    return checkNotNull(xAxisAspect.resolveString(o1)).compareToIgnoreCase(xAxisAspect.resolveString(o2));
-                }
-
+            Collections.sort(fInternalEntryList, (o1 , o2) -> {
+                String str1 = checkNotNull(xAxisAspect.resolveString(o1));
+                String str2 = xAxisAspect.resolveString(o2);
+                return str1.compareToIgnoreCase(str2);
             });
         } else {
             fInternalEntryList = getResultTable().getEntries();
