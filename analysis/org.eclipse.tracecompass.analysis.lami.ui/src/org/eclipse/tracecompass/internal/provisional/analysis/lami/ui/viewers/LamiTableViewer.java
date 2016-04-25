@@ -209,10 +209,10 @@ public final class LamiTableViewer extends TmfSimpleTableViewer implements ILami
             return;
         }
 
-        int[] selectionsIndexes = selections.stream().mapToInt(index -> {
-            LamiTableEntry entry = fResultTable.getEntries().get(index);
-            return latencyContentProvider.getIndexOf(entry);
-        }).toArray();
+        int[] selectionsIndexes = selections.stream()
+                .map(index -> fResultTable.getEntries().get(index))
+                .mapToInt(entry -> latencyContentProvider.getIndexOf(entry))
+                .toArray();
 
         Display.getDefault().asyncExec(() -> {
             getTableViewer().getTable().setSelection(selectionsIndexes);
