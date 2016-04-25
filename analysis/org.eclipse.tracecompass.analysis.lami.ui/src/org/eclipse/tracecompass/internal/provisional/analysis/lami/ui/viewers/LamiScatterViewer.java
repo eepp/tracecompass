@@ -64,7 +64,7 @@ public class LamiScatterViewer extends LamiXYChartViewer {
      * sorted list is necessary for graphing. Translation for index to the
      * actual table is provided.
      */
-    List<@NonNull LamiTableEntry> fInternalEntryList;
+    List<LamiTableEntry> fInternalEntryList;
 
     /**
      * Constructor
