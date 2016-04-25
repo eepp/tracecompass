@@ -373,9 +373,8 @@ public class LamiScatterViewer extends LamiXYChartViewer {
                     /* Translate to global index */
                     LamiTableEntry entry = fInternalEntryList.get(closest);
                     int index = getResultTable().getEntries().indexOf(entry);
-                    if (ctrlMode && selections.contains(index)) {
-                        selections.remove(index);
-                    } else {
+
+                    if (!ctrlMode || !selections.remove(index)) {
                         selections.add(index);
                     }
                     /* Do no iterate since we already found a match */

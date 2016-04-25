@@ -189,9 +189,7 @@ public class LamiHistogramViewer extends LamiXYChartViewer {
                         Rectangle rectangle = recs[j];
                         if (rectangle.contains(xMouseLocation, yMouseLocation)) {
                             int index = (int) barSerie.getXSeries()[j];
-                            if (ctrlMode && selections.contains(index)) {
-                                selections.remove(index);
-                            } else {
+                            if (!ctrlMode || !selections.remove(index)) {
                                 selections.add(index);
                             }
                         }
