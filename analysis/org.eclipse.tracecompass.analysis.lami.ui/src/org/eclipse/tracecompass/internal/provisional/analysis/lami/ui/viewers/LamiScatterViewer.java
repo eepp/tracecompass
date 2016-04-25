@@ -107,10 +107,6 @@ public class LamiScatterViewer extends LamiXYChartViewer {
 
         /* Create Y series */
         if (xAxisAspect.isNumerical()) {
-            xSerie = fInternalEntryList.stream()
-                    .mapToDouble(entry -> xAxisAspect.resolveDouble(entry))
-                    .toArray();
-
             if (xIsLog) {
                 /* Log axis does not support 0 values. Clamp them to 0.9 */
                 xSerie = fInternalEntryList.stream()
