@@ -12,6 +12,7 @@ package org.eclipse.tracecompass.internal.provisional.analysis.lami.core.module;
 import java.text.FieldPosition;
 import java.text.Format;
 import java.text.ParsePosition;
+import java.util.Map.Entry;
 
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.Nullable;
@@ -52,7 +53,7 @@ public class LamiLabelFormat extends Format {
                 return new StringBuffer(" ");
             }
 
-            for (java.util.Map.Entry<@NonNull String, @NonNull Integer> entry : fMap.entrySet()) {
+            for (Entry<@NonNull String, @NonNull Integer> entry : fMap.entrySet()) {
                 if (entry.getValue() == ((Double)obj).intValue()) {
                     if (entry.getKey().isEmpty()) {
                         return new StringBuffer("?");
