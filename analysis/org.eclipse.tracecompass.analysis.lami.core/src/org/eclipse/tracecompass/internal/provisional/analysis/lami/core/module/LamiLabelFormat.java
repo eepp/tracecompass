@@ -27,6 +27,8 @@ import com.google.common.collect.BiMap;
  */
 public class LamiLabelFormat extends Format {
 
+    private static final String SWT_EMPTY = " ";
+    private static final String UNKNOW_REPRESENTATION = "?";
     private final BiMap<String, Integer> fMap;
 
     /**
@@ -49,19 +51,19 @@ public class LamiLabelFormat extends Format {
        if (toAppendTo != null && obj != null) {
            /* Return string buffer with a space in it since SWT do not like to draw empty string */
             if ((((Double)obj) % 1 != 0) || !fMap.containsValue(((Double)obj).intValue())) {
-                return new StringBuffer(" ");
+                return new StringBuffer(SWT_EMPTY);
             }
 
             for (Entry<String, Integer> entry : fMap.entrySet()) {
                 if (entry.getValue() == ((Double)obj).intValue()) {
                     if (entry.getKey().isEmpty()) {
-                        return new StringBuffer("?");
+                        return new StringBuffer(UNKNOW_REPRESENTATION);
                     }
                     return toAppendTo.append(entry.getKey());
                 }
             }
         }
-        return new StringBuffer(" ");
+        return new StringBuffer(SWT_EMPTY);
     }
 
     @Override
