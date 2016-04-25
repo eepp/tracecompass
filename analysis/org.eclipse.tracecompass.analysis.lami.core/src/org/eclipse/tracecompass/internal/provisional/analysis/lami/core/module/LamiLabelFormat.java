@@ -16,7 +16,7 @@ import java.text.ParsePosition;
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.Nullable;
 
-import com.google.common.collect.HashBiMap;
+import com.google.common.collect.BiMap;
 
 /**
  *
@@ -27,14 +27,14 @@ import com.google.common.collect.HashBiMap;
  */
 public class LamiLabelFormat extends Format {
 
-    private final HashBiMap<String, Integer> fMap;
+    private final BiMap<String, Integer> fMap;
 
     /**
      * Constructor
      *
      * @param The map
      */
-    public LamiLabelFormat(HashBiMap<String, Integer> map) {
+    public LamiLabelFormat(BiMap<String, Integer> map) {
         super();
         fMap = map;
     }

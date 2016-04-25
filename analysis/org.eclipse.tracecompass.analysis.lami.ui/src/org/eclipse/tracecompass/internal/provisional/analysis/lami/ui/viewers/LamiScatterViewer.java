@@ -47,6 +47,7 @@ import org.swtchart.ISeries.SeriesType;
 import org.swtchart.LineStyle;
 import org.swtchart.Range;
 
+import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.google.common.collect.Iterators;
 
@@ -101,7 +102,7 @@ public class LamiScatterViewer extends LamiXYChartViewer {
 
         /* Create X series */
         double[] xSerie;
-        HashBiMap<String, Integer> xMap = HashBiMap.create();
+        BiMap<String, Integer> xMap = HashBiMap.create();
         boolean xIsLog = graphModel.xAxisIsLog();
 
         /* Create Y series */
@@ -147,7 +148,7 @@ public class LamiScatterViewer extends LamiXYChartViewer {
 
         List<LamiTableEntryAspect> yAspects = getYAxisAspects();
         Boolean areYAspectsNumerical = false;
-        HashBiMap<String, Integer> yMap = HashBiMap.create();
+        BiMap<String, Integer> yMap = HashBiMap.create();
 
         /* Check all aspect are the same type */
         for (LamiTableEntryAspect aspect : yAspects) {
