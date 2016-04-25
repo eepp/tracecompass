@@ -262,7 +262,7 @@ public final class LamiReportView extends TmfView {
             boolean[] checkBoxOptionsResults = dialog.getCheckBoxOptionValues();
 
             String xAxisCol = Arrays.stream(results)
-                .map(elem -> { return ((LamiTableEntryAspect)elem).getName();} )
+                .map(elem -> ((LamiTableEntryAspect)elem).getName())
                 .findFirst()
                 .get();
 
@@ -305,7 +305,7 @@ public final class LamiReportView extends TmfView {
             checkBoxOptionsResults = dialog2.getCheckBoxOptionValues();
 
             List<String> seriesCols = Arrays.stream(results)
-                .map(elem -> { return ((LamiTableEntryAspect)elem).getName();} )
+                .map(elem -> ((LamiTableEntryAspect)elem).getName())
                 .collect(Collectors.toList());
 
             /* Get Y log scale option */
