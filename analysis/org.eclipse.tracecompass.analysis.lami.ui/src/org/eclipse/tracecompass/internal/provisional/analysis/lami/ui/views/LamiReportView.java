@@ -50,6 +50,8 @@ import org.eclipse.tracecompass.tmf.core.timestamp.TmfTimeRange;
 import org.eclipse.tracecompass.tmf.core.timestamp.TmfTimestamp;
 import org.eclipse.tracecompass.tmf.ui.views.TmfView;
 
+import com.google.common.collect.Iterables;
+
 /**
  * Base view showing output of Babeltrace scripts.
  *
@@ -348,12 +350,14 @@ public final class LamiReportView extends TmfView {
             return;
         }
 
+        Set<Integer> entryIndex = signal.getEntryIndex();
+
         /*
          * Since most of the external viewer deal only with continuous timerange and do not allow multi time range
          * selection simply signal only when only one selection is present.
          */
 
-        if (signal.getEntryIndex().size() == 0) {
+        if (entryIndex.isEmpty()) {
             /*
              * In an ideal world we would send a null signal to reset all view
              * and simply show no selection. But since this is Tracecompass
@@ -363,8 +367,9 @@ public final class LamiReportView extends TmfView {
             return;
         }
 
-        if (signal.getEntryIndex().size() == 1) {
-            LamiTimeRange timeRange = table.getEntries().get((int) (signal.getEntryIndex().toArray())[0]).getCorrespondingTimeRange();
+        if (entryIndex.size() == 1) {
+            int index = Iterables.getOnlyElement(entryIndex).intValue();
+            LamiTimeRange timeRange = table.getEntries().get(index).getCorrespondingTimeRange();
             if (timeRange != null) {
                 /* Send Range update to other views */
                 ITmfTimestamp start = TmfTimestamp.fromNanos(timeRange.getStart());
@@ -373,7 +378,7 @@ public final class LamiReportView extends TmfView {
             }
         }
 
-        fSelectionIndexes = signal.getEntryIndex();
+        fSelectionIndexes = entryIndex;
     }
 
     /**
