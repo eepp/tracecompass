@@ -424,7 +424,7 @@ public class TimeChartView extends TmfView implements ITimeGraphRangeListener, I
         public void decorateTraceEntry(TimeChartAnalysisEntry timeAnalysisEntry, TimeChartEvent parentEvent) {
             // Set max duration high to ensure iterator does not consider
             // itemized events
-            Iterator<ITimeEvent> iterator = timeAnalysisEntry.getTimeEventsIterator(0, Long.MAX_VALUE, Long.MAX_VALUE);
+            Iterator<ITimeEvent> iterator = timeAnalysisEntry.getTimeEventsIteratorForRange(0, Long.MAX_VALUE, Long.MAX_VALUE);
             TimeChartEvent event = null;
             int entryPriority = ColorSettingsManager.PRIORITY_NONE;
             boolean entryIsBookmarked = false;

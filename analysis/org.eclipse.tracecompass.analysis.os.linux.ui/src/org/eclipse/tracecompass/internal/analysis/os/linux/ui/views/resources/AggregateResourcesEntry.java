@@ -96,7 +96,7 @@ class AggregateResourcesEntry extends ResourcesEntry {
     }
 
     @Override
-    public Iterator<@NonNull ITimeEvent> getTimeEventsIterator(long startTime, long stopTime, long visibleDuration) {
+    public Iterator<@NonNull ITimeEvent> getTimeEventsIteratorForRange(long startTime, long stopTime, long visibleDuration) {
         return new AggregateEventIterator(fContributors, startTime, stopTime, visibleDuration, COMPARATOR);
     }
 

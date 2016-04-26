@@ -63,7 +63,7 @@ public class AggregateEventIterator implements Iterator<@NonNull ITimeEvent> {
     public AggregateEventIterator(@NonNull List<ITimeGraphEntry> contributors, long startTime, long endTime, long duration, Comparator<ITimeEvent> comparator) {
         fComparator = comparator;
         contributors.forEach(timeGraphEntry -> {
-            final Iterator<@NonNull ITimeEvent> timeEventsIterator = timeGraphEntry.getTimeEventsIterator(startTime, endTime, duration);
+            final Iterator<@NonNull ITimeEvent> timeEventsIterator = timeGraphEntry.getTimeEventsIteratorForRange(startTime, endTime, duration);
             if (timeEventsIterator != null) {
                 CachingIterator iterator = new CachingIterator(timeEventsIterator, comparator);
                 if (iterator.hasNext()) {

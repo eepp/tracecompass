@@ -94,7 +94,7 @@ public class TraceImpl implements ITimeGraphEntry {
     }
 
     @Override
-    public Iterator<@NonNull ITimeEvent> getTimeEventsIterator(long aStartTime, long aStopTime, long maxDuration) {
+    public Iterator<@NonNull ITimeEvent> getTimeEventsIteratorForRange(long aStartTime, long aStopTime, long maxDuration) {
         return traceEvents.iterator();
     }
 

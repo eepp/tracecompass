@@ -203,7 +203,7 @@ public class AggregateIteratorTest {
         }
 
         @Override
-        public Iterator<@NonNull ITimeEvent> getTimeEventsIterator(long startTime, long stopTime, long visibleDuration) {
+        public Iterator<@NonNull ITimeEvent> getTimeEventsIteratorForRange(long startTime, long stopTime, long visibleDuration) {
             if (startTime != Long.MIN_VALUE || stopTime != Long.MAX_VALUE) {
                 throw new IllegalArgumentException("startTime must be Long.MIN_VALUE, stopTime must be Long.MAX_VALUE");
             }

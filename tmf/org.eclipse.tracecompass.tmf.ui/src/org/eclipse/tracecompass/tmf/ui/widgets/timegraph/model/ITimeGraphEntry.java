@@ -77,7 +77,7 @@ public interface ITimeGraphEntry {
      * @return true if the entry has time events
      *
      * @see #getTimeEventsIterator
-     * @see #getTimeEventsIterator(long, long, long)
+     * @see #getTimeEventsIteratorForRange(long, long, long)
      */
     boolean hasTimeEvents();
 
@@ -103,7 +103,7 @@ public interface ITimeGraphEntry {
      *
      * @return the iterator
      */
-    <T extends ITimeEvent> Iterator<@NonNull T> getTimeEventsIterator(long startTime, long stopTime, long visibleDuration);
+    <T extends ITimeEvent> Iterator<@NonNull T> getTimeEventsIteratorForRange(long startTime, long stopTime, long visibleDuration);
 
     /**
      * Test if this time graph entry matches with this pattern

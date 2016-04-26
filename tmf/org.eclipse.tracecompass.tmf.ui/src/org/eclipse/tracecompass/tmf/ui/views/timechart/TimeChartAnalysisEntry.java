@@ -87,7 +87,7 @@ public class TimeChartAnalysisEntry implements ITimeGraphEntry {
     }
 
     @Override
-    public Iterator<@NonNull ITimeEvent> getTimeEventsIterator(long startTime, long stopTime, long maxDuration) {
+    public Iterator<@NonNull ITimeEvent> getTimeEventsIteratorForRange(long startTime, long stopTime, long maxDuration) {
         return new EntryIterator(startTime, stopTime, maxDuration);
     }
 
@@ -128,7 +128,7 @@ public class TimeChartAnalysisEntry implements ITimeGraphEntry {
                                 next = event;
                                 return true;
                             }
-                            nestedIterator = event.getItemizedEntry().getTimeEventsIterator(fIteratorStartTime, fIteratorStopTime, fIteratorMaxDuration);
+                            nestedIterator = event.getItemizedEntry().getTimeEventsIteratorForRange(fIteratorStartTime, fIteratorStopTime, fIteratorMaxDuration);
                             return nestedIterator.hasNext();
                         }
                     }

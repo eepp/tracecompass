@@ -1937,7 +1937,7 @@ public class TimeGraphControl extends TimeGraphBaseControl
             setFontForHeight(height, gc);
 
             long maxDuration = (timeProvider.getTimeSpace() == 0) ? Long.MAX_VALUE : 1 * (time1 - time0) / timeProvider.getTimeSpace();
-            Iterator<ITimeEvent> iterator = entry.getTimeEventsIterator(time0, time1, maxDuration);
+            Iterator<ITimeEvent> iterator = entry.getTimeEventsIteratorForRange(time0, time1, maxDuration);
 
             int lastX = -1;
             while (iterator.hasNext()) {
