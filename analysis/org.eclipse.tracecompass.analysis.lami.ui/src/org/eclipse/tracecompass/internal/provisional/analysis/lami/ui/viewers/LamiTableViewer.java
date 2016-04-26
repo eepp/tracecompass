@@ -203,11 +203,7 @@ public final class LamiTableViewer extends TmfSimpleTableViewer implements ILami
         /* Fetch the position of the selected entry in the actual table since it could be sorted by another column */
         LamiTableContentProvider latencyContentProvider = (LamiTableContentProvider) getTableViewer().getContentProvider();
 
-        @Nullable Set<Integer> selections = signal.getEntryIndex();
-        if (selections == null) {
-            getTableViewer().getTable().deselectAll();
-            return;
-        }
+        Set<Integer> selections = signal.getEntryIndex();
 
         int[] selectionsIndexes = selections.stream()
                 .map(index -> fResultTable.getEntries().get(index))
