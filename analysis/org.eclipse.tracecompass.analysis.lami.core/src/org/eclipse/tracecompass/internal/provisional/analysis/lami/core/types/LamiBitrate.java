@@ -9,7 +9,7 @@
 
 package org.eclipse.tracecompass.internal.provisional.analysis.lami.core.types;
 
-class LamiBitrate extends LamiInteger {
+public class LamiBitrate extends LamiInteger {
     public LamiBitrate(long value) {
         super(value);
     }
