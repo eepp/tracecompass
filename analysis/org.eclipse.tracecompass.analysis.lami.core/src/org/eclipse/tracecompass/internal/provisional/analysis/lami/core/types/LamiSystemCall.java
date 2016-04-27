@@ -9,7 +9,7 @@
 
 package org.eclipse.tracecompass.internal.provisional.analysis.lami.core.types;
 
-class LamiSystemCall extends LamiString {
+public class LamiSystemCall extends LamiString {
     private final String fString;
 
     public LamiSystemCall(String value) {

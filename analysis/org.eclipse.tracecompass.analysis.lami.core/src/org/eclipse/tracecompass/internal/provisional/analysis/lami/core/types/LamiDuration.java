@@ -9,7 +9,7 @@
 
 package org.eclipse.tracecompass.internal.provisional.analysis.lami.core.types;
 
-class LamiDuration extends LamiInteger {
+public class LamiDuration extends LamiInteger {
     public LamiDuration(long value) {
         super(value);
     }
