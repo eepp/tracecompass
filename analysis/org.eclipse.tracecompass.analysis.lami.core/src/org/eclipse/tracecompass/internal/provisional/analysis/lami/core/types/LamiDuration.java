@@ -9,7 +9,19 @@
 
 package org.eclipse.tracecompass.internal.provisional.analysis.lami.core.types;
 
+/**
+ * Duration data element
+ *
+ * @author Philippe Proulx
+ */
 public class LamiDuration extends LamiInteger {
+
+    /**
+     * Constructor
+     *
+     * @param value
+     *            The duration value (as a long)
+     */
     public LamiDuration(long value) {
         super(value);
     }

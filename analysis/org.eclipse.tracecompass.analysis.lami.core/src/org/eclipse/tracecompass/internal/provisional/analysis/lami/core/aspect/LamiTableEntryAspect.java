@@ -82,6 +82,15 @@ public abstract class LamiTableEntryAspect {
     public abstract boolean isTimeStamp();
 
     /**
+     * Indicate if this aspect represent a time duration or not. This can be used in
+     * chart for axis labeling etc.
+     * @return  If this aspect represent a time duration or not
+     */
+    public boolean isTimeDuration() {
+        return false;
+    }
+
+    /**
      * Resolve this aspect for the given entry.
      *
      * @param entry

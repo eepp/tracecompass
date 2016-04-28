@@ -42,6 +42,7 @@ import org.eclipse.tracecompass.internal.provisional.analysis.lami.core.aspect.L
 import org.eclipse.tracecompass.internal.provisional.analysis.lami.core.aspect.LamiProcessNameAspect;
 import org.eclipse.tracecompass.internal.provisional.analysis.lami.core.aspect.LamiProcessPIDAspect;
 import org.eclipse.tracecompass.internal.provisional.analysis.lami.core.aspect.LamiProcessTIDAspect;
+import org.eclipse.tracecompass.internal.provisional.analysis.lami.core.aspect.LamiDurationAspect;
 import org.eclipse.tracecompass.internal.provisional.analysis.lami.core.aspect.LamiEmptyAspect;
 import org.eclipse.tracecompass.internal.provisional.analysis.lami.core.aspect.LamiTableEntryAspect;
 import org.eclipse.tracecompass.internal.provisional.analysis.lami.core.aspect.LamiTimeRangeBeginAspect;
@@ -326,6 +327,10 @@ public abstract class LamiAnalysis implements IOnDemandAnalysis {
                 aspectsBuilder.add(new LamiIRQTypeAspect(columnTitle, colIndex));
                 aspectsBuilder.add(new LamiIRQNameAspect(columnTitle, colIndex));
                 aspectsBuilder.add(new LamiIRQNumberAspect(columnTitle, colIndex));
+                break;
+
+            case DURATION:
+                aspectsBuilder.add(new LamiDurationAspect(columnTitle, colIndex));
                 break;
 
             case MIXED:

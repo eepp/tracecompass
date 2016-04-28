@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015 EfficiOS Inc., Alexandre Montplaisir
+ * Copyright (c) 2016 EfficiOS Inc., Michael Jeanson
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -15,27 +15,27 @@ import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.tracecompass.internal.provisional.analysis.lami.core.module.LamiTableEntry;
 import org.eclipse.tracecompass.internal.provisional.analysis.lami.core.types.LamiData;
-import org.eclipse.tracecompass.internal.provisional.analysis.lami.core.types.LamiTimeRange;
+import org.eclipse.tracecompass.internal.provisional.analysis.lami.core.types.LamiDuration;
 
 /**
  * Aspect for a time range duration
  *
- * @author Alexandre Montplaisir
+ * @author Michael Jeanson
  */
-public class LamiTimeRangeDurationAspect extends LamiTableEntryAspect {
+public class LamiDurationAspect extends LamiTableEntryAspect {
 
     private final int fColIndex;
 
     /**
      * Constructor
      *
-     * @param timeRangeName
-     *            Name of the time range
+     * @param colName
+     *            Column name
      * @param colIndex
      *            Column index
      */
-    public LamiTimeRangeDurationAspect(String timeRangeName, int colIndex) {
-        super(timeRangeName + " (" + Messages.LamiAspect_TimeRangeDuration + ')', "ns"); //$NON-NLS-1$ //$NON-NLS-2$
+    public LamiDurationAspect(String colName, int colIndex) {
+        super(colName, "ns"); //$NON-NLS-1$
         fColIndex = colIndex;
     }
 
@@ -57,9 +57,9 @@ public class LamiTimeRangeDurationAspect extends LamiTableEntryAspect {
     @Override
     public @Nullable String resolveString(LamiTableEntry entry) {
         LamiData data = entry.getValue(fColIndex);
-        if (data instanceof LamiTimeRange) {
-            LamiTimeRange range = (LamiTimeRange) data;
-            return String.valueOf(range.getDuration());
+        if (data instanceof LamiDuration) {
+            LamiDuration duration = (LamiDuration) data;
+            return String.valueOf(duration.getValue());
         }
         return data.toString();
     }
@@ -67,15 +67,15 @@ public class LamiTimeRangeDurationAspect extends LamiTableEntryAspect {
     @Override
     public double resolveDouble(@NonNull LamiTableEntry entry) {
         LamiData data = entry.getValue(fColIndex);
-        if (data instanceof LamiTimeRange) {
-            LamiTimeRange range = (LamiTimeRange) data;
-            return range.getDuration();
+        if (data instanceof LamiDuration) {
+            LamiDuration range = (LamiDuration) data;
+            return range.getValue();
         }
-        return 0;
+        return 0.0;
     }
 
     @Override
-    public Comparator<LamiTableEntry> getComparator() {
+    public @NonNull Comparator<@NonNull LamiTableEntry> getComparator() {
         return (o1, o2) -> Double.compare(resolveDouble(o1), resolveDouble(o2));
     }
 
