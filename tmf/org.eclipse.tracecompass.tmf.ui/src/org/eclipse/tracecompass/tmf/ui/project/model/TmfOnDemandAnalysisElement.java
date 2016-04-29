@@ -104,7 +104,11 @@ public class TmfOnDemandAnalysisElement extends TmfProjectModelElement
 
     @Override
     public Image getIcon() {
-        return TmfProjectModelIcons.DEFAULT_ANALYSIS_ICON;
+        if (fAnalysis.isUserDefined()) {
+            return TmfProjectModelIcons.USER_DEFINED_ONDEMAND_ICON;
+        }
+
+        return TmfProjectModelIcons.BUILT_IN_ONDEMAND_ICON;
     }
 
     @Override

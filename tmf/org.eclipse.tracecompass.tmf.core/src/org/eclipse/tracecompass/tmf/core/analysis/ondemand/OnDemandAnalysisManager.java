@@ -71,6 +71,22 @@ public final class OnDemandAnalysisManager {
         public OndemandAnalysisWrapper(IOnDemandAnalysis analysis) {
             this.analysis = analysis;
         }
+
+        @Override
+        public int hashCode() {
+            return this.analysis.hashCode();
+        }
+
+        @Override
+        public boolean equals(@Nullable Object o) {
+            if (o == null || !(o instanceof OndemandAnalysisWrapper)) {
+                return false;
+            }
+
+            OndemandAnalysisWrapper other = (OndemandAnalysisWrapper) o;
+
+            return this.analysis.getName().equals(other.analysis.getName());
+        }
     }
 
     /**
@@ -85,6 +101,36 @@ public final class OnDemandAnalysisManager {
             INSTANCE = inst;
         }
         return inst;
+    }
+
+    /**
+     * Registers an on-demand analysis to this manager.
+     *
+     * @param analysis On-demand analysis to register
+     */
+    public void registerAnalysis(IOnDemandAnalysis analysis) {
+        if (fAnalysisWrappers.stream().anyMatch(wrapper -> wrapper.analysis.getName().equals(analysis.getName()))) {
+            Activator.logWarning(String.format("Ignoring external analysis with existing name \"%s\"", analysis.getName())); //$NON-NLS-1$
+            return;
+        }
+
+        fAnalysisWrappers.add(new OndemandAnalysisWrapper(analysis));
+        analysisCache.invalidateAll();
+    }
+
+    /**
+     * Unregisters an on-demand analysis from this manager.
+     *
+     * @param analysis On-demand analysis to unregister
+     */
+    public void unregisterAnalysis(IOnDemandAnalysis analysis) {
+        if (!analysis.isUserDefined()) {
+            Activator.logWarning(String.format("Not unregistering built-in on-demand analysis \"%s\"", analysis.getName())); //$NON-NLS-1$
+            return;
+        }
+
+        fAnalysisWrappers.remove(new OndemandAnalysisWrapper(analysis));
+        analysisCache.invalidateAll();
     }
 
     /**
@@ -120,13 +166,4 @@ public final class OnDemandAnalysisManager {
         return checkNotNull(analysisCache.getUnchecked(trace));
     }
 
-    /**
-     * Registers an on-demand analysis to this manager.
-     *
-     * @param analysis
-     *            On-demand analysis to register
-     */
-    public void registerAnalysis(IOnDemandAnalysis analysis) {
-        fAnalysisWrappers.add(new OndemandAnalysisWrapper(analysis));
-    }
 }

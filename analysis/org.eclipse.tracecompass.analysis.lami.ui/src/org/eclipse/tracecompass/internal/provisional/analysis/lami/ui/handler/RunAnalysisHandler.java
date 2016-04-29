@@ -25,9 +25,6 @@ import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jface.dialogs.IInputValidator;
 import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.jface.viewers.ISelectionProvider;
-import org.eclipse.jface.viewers.TreeSelection;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
@@ -41,11 +38,11 @@ import org.eclipse.tracecompass.tmf.core.analysis.ondemand.OnDemandAnalysisExcep
 import org.eclipse.tracecompass.tmf.core.timestamp.TmfTimeRange;
 import org.eclipse.tracecompass.tmf.core.trace.ITmfTrace;
 import org.eclipse.tracecompass.tmf.core.trace.TmfTraceManager;
+import org.eclipse.tracecompass.tmf.ui.project.model.TmfBuiltInOnDemandAnalysisElement;
 import org.eclipse.tracecompass.tmf.ui.project.model.TmfCommonProjectElement;
 import org.eclipse.tracecompass.tmf.ui.project.model.TmfOnDemandAnalysisElement;
 import org.eclipse.tracecompass.tmf.ui.project.model.TmfReportsElement;
-import org.eclipse.ui.IWorkbenchPage;
-import org.eclipse.ui.IWorkbenchPart;
+import org.eclipse.tracecompass.tmf.ui.project.model.TmfUserDefinedOnDemandAnalysisElement;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
@@ -61,42 +58,20 @@ public class RunAnalysisHandler extends AbstractHandler {
 
     @Override
     public boolean isEnabled() {
-        // Check if we are closing down
-        final IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
-        if (window == null) {
+        final Object elem = HandlerUtils.getSelectedModelElement();
+
+        if (elem == null) {
             return false;
         }
 
-        // Get the selection
-        final IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
-        final IWorkbenchPart part = page.getActivePart();
-        if (part == null) {
+        if (!(elem instanceof TmfBuiltInOnDemandAnalysisElement || elem instanceof TmfUserDefinedOnDemandAnalysisElement)) {
             return false;
         }
-        final ISelectionProvider selectionProvider = part.getSite().getSelectionProvider();
-        if (selectionProvider == null) {
-            return false;
-        }
-        final ISelection selection = selectionProvider.getSelection();
 
-        /*
-         * Make sure there is only one selection and that it is a on-demand
-         * analysis element.
-         */
-        fAnalysisElem = null;
-        if (selection instanceof TreeSelection) {
-            final TreeSelection sel = (TreeSelection) selection;
-            // There should be only one item selected as per the plugin.xml
-            final Object element = sel.getFirstElement();
-            if (element instanceof TmfOnDemandAnalysisElement) {
-                TmfOnDemandAnalysisElement elem = (TmfOnDemandAnalysisElement) element;
-                if (elem.getAnalysis() instanceof LamiAnalysis && elem.canRun()) {
-                    fAnalysisElem = elem;
-                }
-            }
-        }
+        final TmfOnDemandAnalysisElement analysisElem = (TmfOnDemandAnalysisElement) elem;
+        fAnalysisElem = analysisElem;
 
-        return (fAnalysisElem != null);
+        return analysisElem.canRun();
     }
 
     @Override

@@ -9,7 +9,15 @@
 
 package org.eclipse.tracecompass.internal.analysis.lami.core;
 
+import java.nio.file.Path;
+import java.util.List;
+
 import org.eclipse.tracecompass.common.core.TraceCompassActivator;
+import org.eclipse.tracecompass.internal.provisional.analysis.lami.core.LamiConfigUtils;
+import org.eclipse.tracecompass.internal.provisional.analysis.lami.core.module.LamiAnalysis;
+import org.eclipse.tracecompass.internal.provisional.analysis.lami.core.module.LamiAnalysisFactoryFromConfigFile;
+import org.eclipse.tracecompass.internal.provisional.analysis.lami.core.module.LamiAnalysisFactoryFromConfigFile.ConfigFileLamiAnalysisFactoryException;
+import org.eclipse.tracecompass.tmf.core.analysis.ondemand.OnDemandAnalysisManager;
 
 /**
  * Plugin activator
@@ -34,8 +42,23 @@ public class Activator extends TraceCompassActivator {
         super(PLUGIN_ID);
     }
 
+    private void loadUserDefinedAnalyses() {
+        final Path configDirPath = LamiConfigUtils.getConfigDirPath();
+
+        try {
+            final List<LamiAnalysis> analyses = LamiAnalysisFactoryFromConfigFile.buildFromConfigDir(configDirPath, true, trace -> true);
+
+            analyses.forEach(analysis -> {
+                OnDemandAnalysisManager.getInstance().registerAnalysis(analysis);
+            });
+        } catch (ConfigFileLamiAnalysisFactoryException e) {
+            logWarning("Cannot load user-defined external analyses", e); //$NON-NLS-1$
+        }
+    }
+
     @Override
     protected void startActions() {
+        loadUserDefinedAnalyses();
     }
 
     @Override
