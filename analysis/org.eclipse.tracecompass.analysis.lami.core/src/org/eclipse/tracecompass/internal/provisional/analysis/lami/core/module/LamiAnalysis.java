@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.function.Predicate;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -63,6 +64,7 @@ import org.json.JSONObject;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
 
 /**
@@ -71,7 +73,7 @@ import com.google.common.collect.Multimap;
  *
  * @author Alexandre Montplaisir
  */
-public abstract class LamiAnalysis implements IOnDemandAnalysis {
+public class LamiAnalysis implements IOnDemandAnalysis {
 
     /** Maximum major version of the LAMI protocol we support */
     private static final int MAX_SUPPORTED_MAJOR_VERSION = 1;
@@ -98,6 +100,9 @@ public abstract class LamiAnalysis implements IOnDemandAnalysis {
     private boolean fInitialized = false;
 
     private boolean fIsAvailable;
+    private final String fName;
+    private final boolean fIsUserDefined;
+    private final Predicate<ITmfTrace> fAppliesTo;
 
     /* Data defined by the analysis's metadata */
     private @Nullable String fAnalysisTitle;
@@ -107,18 +112,22 @@ public abstract class LamiAnalysis implements IOnDemandAnalysis {
     /**
      * Constructor. To be called by implementing classes.
      *
-     * @param scriptExecutable
-     *            Executable of the script, should be on the PATH.
-     * @param parameters
-     *            Parameters to pass to the script
+     * @param name
+     *            Name of this analysis
+     * @param isUserDefined
+     *            {@code true} if this ia a user-defined analysis
+     * @param appliesTo
+     *            Predicate to use to check whether or not this
+     *            analysis applies to a given trace
+     * @param args
+     *            Analysis arguments, including the executable name (first argument)
      */
-    protected LamiAnalysis(String scriptExecutable, @NonNull String @Nullable... parameters) {
-        ImmutableList.Builder<String> builder = ImmutableList.builder();
-        builder.add(scriptExecutable);
-        if (parameters != null) {
-            builder.add(parameters);
-        }
-        fScriptCommand = builder.build();
+    public LamiAnalysis(String name, boolean isUserDefined, Predicate<ITmfTrace> appliesTo,
+            List<String> args) {
+        fScriptCommand = ImmutableList.copyOf(args);
+        fName = name;
+        fIsUserDefined = isUserDefined;
+        fAppliesTo = appliesTo;
     }
 
     /**
@@ -129,10 +138,14 @@ public abstract class LamiAnalysis implements IOnDemandAnalysis {
      *
      * @return The view models, per table class names
      */
-    protected abstract Multimap<String, LamiChartModel> getPredefinedViews();
+    protected Multimap<String, LamiChartModel> getPredefinedViews() {
+        return ImmutableMultimap.of();
+    }
 
     @Override
-    public abstract boolean appliesTo(ITmfTrace trace);
+    public boolean appliesTo(ITmfTrace trace) {
+        return fAppliesTo.test(trace);
+    }
 
     @Override
     public boolean canRun(ITmfTrace trace) {
@@ -823,6 +836,16 @@ public abstract class LamiAnalysis implements IOnDemandAnalysis {
             }
         }
 
+    }
+
+    @Override
+    public @NonNull String getName() {
+        return fName;
+    }
+
+    @Override
+    public boolean isUserDefined() {
+        return fIsUserDefined;
     }
 
 }

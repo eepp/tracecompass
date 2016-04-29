@@ -35,6 +35,14 @@ public interface IOnDemandAnalysis {
     String getName();
 
     /**
+     * Returns whether or not this analysis is defined by a user,
+     * as opposed to being shipped with Trace Compass.
+     *
+     * @return <code>true</code> if this analysis is defined by a user
+     */
+    boolean isUserDefined();
+
+    /**
      * Determine if the current analysis can run on the given trace.
      *
      * If it does not apply, then it should not be suggested for the given trace

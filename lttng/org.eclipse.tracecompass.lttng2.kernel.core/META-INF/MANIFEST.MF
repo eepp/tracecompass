@@ -21,7 +21,6 @@ Export-Package: org.eclipse.tracecompass.internal.lttng2.kernel.core;x-friends:=
  org.eclipse.tracecompass.internal.lttng2.kernel.core.analysis.graph.building;x-friends:="org.eclipse.tracecompass.lttng2.kernel.ui,org.eclipse.tracecompass.lttng2.kernel.core.tests",
  org.eclipse.tracecompass.internal.lttng2.kernel.core.analysis.graph.handlers;x-friends:="org.eclipse.tracecompass.lttng2.kernel.ui,org.eclipse.tracecompass.lttng2.kernel.core.tests",
  org.eclipse.tracecompass.internal.lttng2.kernel.core.analysis.graph.model;x-friends:="org.eclipse.tracecompass.lttng2.kernel.ui,org.eclipse.tracecompass.lttng2.kernel.core.tests",
- org.eclipse.tracecompass.internal.lttng2.kernel.core.analysis.ondemand.lttnganalyses;x-internal:=true,
  org.eclipse.tracecompass.internal.lttng2.kernel.core.analysis.vm;x-friends:="org.eclipse.tracecompass.lttng2.kernel.core.tests,org.eclipse.tracecompass.lttng2.kernel.ui",
  org.eclipse.tracecompass.internal.lttng2.kernel.core.analysis.vm.model;x-friends:="org.eclipse.tracecompass.lttng2.kernel.core.tests,org.eclipse.tracecompass.lttng2.kernel.ui",
  org.eclipse.tracecompass.internal.lttng2.kernel.core.analysis.vm.model.qemukvm;x-friends:="org.eclipse.tracecompass.lttng2.kernel.core.tests,org.eclipse.tracecompass.lttng2.kernel.ui",

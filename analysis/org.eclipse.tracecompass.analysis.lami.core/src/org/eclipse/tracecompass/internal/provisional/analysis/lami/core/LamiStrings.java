@@ -10,7 +10,7 @@
 package org.eclipse.tracecompass.internal.provisional.analysis.lami.core;
 
 /**
- * Strings used in Babeltrace analysis scripts JSON output.
+ * Strings used in the LAMI protocol.
  *
  * @author Alexandre Montplaisir
  * @noimplement This interface is not intended to be implemented by clients.
