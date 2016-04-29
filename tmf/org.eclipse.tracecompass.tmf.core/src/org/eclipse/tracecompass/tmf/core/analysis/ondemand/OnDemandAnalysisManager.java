@@ -97,20 +97,6 @@ public final class OnDemandAnalysisManager {
     }
 
     /**
-     * Unregisters an on-demand analysis from this manager.
-     * The on-demand analysis may only be unregistered if it
-     * is user-defined.
-     *
-     * @param analysis On-demand analysis to unregister
-     */
-    public void unregisterAnalysis(IOnDemandAnalysis analysis) {
-        // Prevent non-user-defined analyses from being unregistered
-        if (analysis.isUserDefined()) {
-            fAnalysisWrappers.remove(analysis);
-        }
-    }
-
-    /**
      * Private constructor, should only be called via {@link #getInstance()}.
      */
     private OnDemandAnalysisManager() {

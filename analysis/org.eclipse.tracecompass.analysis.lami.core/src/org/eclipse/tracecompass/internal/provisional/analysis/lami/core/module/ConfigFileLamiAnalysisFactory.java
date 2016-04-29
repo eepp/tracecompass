@@ -151,7 +151,6 @@ public final class ConfigFileLamiAnalysisFactory {
 
         try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(configDir)) {
             for (Path path : directoryStream) {
-                System.out.println(path);
                 analyses.add(buildFromConfigFile(path, isUserDefined, appliesTo));
             }
         } catch (IOException e) {
