@@ -33,14 +33,12 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
-import org.eclipse.tracecompass.common.core.format.DecimalUnitFormat;
 import org.eclipse.tracecompass.internal.provisional.analysis.lami.core.aspect.LamiTableEntryAspect;
 import org.eclipse.tracecompass.internal.provisional.analysis.lami.core.module.LamiChartModel;
 import org.eclipse.tracecompass.internal.provisional.analysis.lami.core.module.LamiChartModel.ChartType;
 import org.eclipse.tracecompass.internal.provisional.analysis.lami.core.module.LamiLabelFormat;
 import org.eclipse.tracecompass.internal.provisional.analysis.lami.core.module.LamiResultTable;
 import org.eclipse.tracecompass.internal.provisional.analysis.lami.core.module.LamiTableEntry;
-import org.eclipse.tracecompass.internal.provisional.analysis.lami.core.module.LamiTimeStampFormat;
 import org.eclipse.tracecompass.internal.provisional.analysis.lami.ui.signals.LamiSelectionUpdateSignal;
 import org.eclipse.tracecompass.tmf.core.signal.TmfSignalManager;
 import org.swtchart.IAxisTick;
@@ -59,13 +57,6 @@ import com.google.common.collect.Iterators;
  * @author Jonathan Rajotte-Julien
  */
 public class LamiScatterViewer extends LamiXYChartViewer {
-
-    /*
-     * Since it is possible to graph non-continuous sortable values an internal
-     * sorted list is necessary for graphing. Translation for index to the
-     * actual table is provided.
-     */
-    private final List<LamiTableEntry> fInternalEntryList;
 
     private Map<ISeries,List<Integer>> fIndexMapping;
 
@@ -87,7 +78,6 @@ public class LamiScatterViewer extends LamiXYChartViewer {
 
         /* Inspect X series */
         fIndexMapping = new HashMap<>();
-        fInternalEntryList = getResultTable().getEntries();
 
         List<LamiTableEntryAspect> xAxisAspects = getXAxisAspects();
         if (xAxisAspects.stream().distinct().count() == 1) {
@@ -96,23 +86,20 @@ public class LamiScatterViewer extends LamiXYChartViewer {
             xAxisAspects.add(singleXAspect);
         }
 
-
-
-
         BiMap<@Nullable String, Integer> xMap = checkNotNull(HashBiMap.create());
         boolean xIsLog = graphModel.xAxisIsLog();
-        boolean areXAspectsContinuous = false;
-        boolean areXAspectsTimeStamp = false;
+
+        boolean areXAspectsContinuous = areAspectsContinuous(xAxisAspects);
+        boolean areXAspectsTimeStamp = areAspectsTimeStamp(xAxisAspects);
+
         /* Check all aspect are the same type */
         for (LamiTableEntryAspect aspect : xAxisAspects) {
-            if (aspect.isContinuous() == xAxisAspects.get(0).isContinuous()) {
+            if (aspect.isContinuous() != areXAspectsContinuous) {
                 areXAspectsContinuous = aspect.isContinuous();
-            } else {
                 throw new IllegalStateException();
             }
-            if (aspect.isTimeStamp() == xAxisAspects.get(0).isTimeStamp()) {
+            if (aspect.isTimeStamp() != areXAspectsTimeStamp) {
                 areXAspectsTimeStamp = aspect.isTimeStamp();
-            } else {
                 throw new IllegalStateException();
             }
         }
@@ -132,19 +119,16 @@ public class LamiScatterViewer extends LamiXYChartViewer {
         List<LamiTableEntryAspect> yAspects = getYAxisAspects();
         BiMap<@Nullable String, Integer> yMap = checkNotNull(HashBiMap.create());
         boolean yIsLog = graphModel.yAxisIsLog();
-        boolean areYAspectsContinuous = false;
-        boolean areYAspectsTimeStamp = false;
+
+        boolean areYAspectsContinuous = areAspectsContinuous(yAxisAspects);
+        boolean areYAspectsTimeStamp = areAspectsTimeStamp(yAxisAspects);
 
         /* Check all aspect are the same type */
-        for (LamiTableEntryAspect aspect : yAspects) {
-            if (aspect.isContinuous() == yAspects.get(0).isContinuous()) {
-                areYAspectsContinuous = aspect.isContinuous();
-            } else {
+        for (LamiTableEntryAspect aspect : yAxisAspects) {
+            if (aspect.isContinuous() != areYAspectsContinuous) {
                 throw new IllegalStateException();
             }
-            if (aspect.isTimeStamp() == yAspects.get(0).isTimeStamp()) {
-                areYAspectsTimeStamp = aspect.isTimeStamp();
-            } else {
+            if (aspect.isTimeStamp() != areYAspectsTimeStamp) {
                 throw new IllegalStateException();
             }
         }
@@ -154,7 +138,7 @@ public class LamiScatterViewer extends LamiXYChartViewer {
          * series
          */
         if (!areYAspectsContinuous) {
-            generateLabelMap(yAspects, yMap);
+            generateLabelMap(yAxisAspects, yMap);
         }
 
         /* Plot the series */
@@ -165,7 +149,7 @@ public class LamiScatterViewer extends LamiXYChartViewer {
             if (xAxisAspects.size() == 1 ) {
                 /* Always map to the same x series */
                 xAspect = xAxisAspects.get(0);
-                name = yAspect.getName();
+                name = yAspect.getLabel();
             } else {
                 xAspect = xAxisAspects.get(index);
                 name = (yAspect.getName() + ' ' + Messages.LamiScatterViewer_by + ' ' + xAspect.getName());
@@ -175,9 +159,9 @@ public class LamiScatterViewer extends LamiXYChartViewer {
             List<@Nullable Double> yDoubleSeries = new ArrayList<>();
 
             if (xAspect.isContinuous()) {
-                xDoubleSeries = fInternalEntryList.stream().map((entry -> xAspect.resolveDouble(entry))).collect(Collectors.toList());
+                xDoubleSeries = getResultTable().getEntries().stream().map((entry -> xAspect.resolveDouble(entry))).collect(Collectors.toList());
             } else {
-                xDoubleSeries = fInternalEntryList.stream().map(entry -> {
+                xDoubleSeries = getResultTable().getEntries().stream().map(entry -> {
                     @Nullable String string = xAspect.resolveString(entry);
                     Integer value = xMap.get(string) ;
                     if (value != null) {
@@ -189,9 +173,9 @@ public class LamiScatterViewer extends LamiXYChartViewer {
             }
 
             if (yAspect.isContinuous()) {
-                yDoubleSeries = fInternalEntryList.stream().map((entry -> yAspect.resolveDouble(entry))).collect(Collectors.toList());
+                yDoubleSeries = getResultTable().getEntries().stream().map((entry -> yAspect.resolveDouble(entry))).collect(Collectors.toList());
             } else {
-                yDoubleSeries = fInternalEntryList.stream().map(entry -> {
+                yDoubleSeries = getResultTable().getEntries().stream().map(entry -> {
                     @Nullable String string = yAspect.resolveString(entry);
                     Integer value = yMap.get(string) ;
                     if (value != null) {
@@ -242,10 +226,7 @@ public class LamiScatterViewer extends LamiXYChartViewer {
         /* Modify x axis related chart styling */
         IAxisTick xTick = getChart().getAxisSet().getXAxis(0).getTick();
         if (areXAspectsContinuous) {
-            if (areXAspectsTimeStamp) {
-                /* Only apply a custom format on Timestamp */
-                xTick.setFormat(new LamiTimeStampFormat());
-            }
+            xTick.setFormat(getContinuousAxisFormatter(xAxisAspects, getResultTable().getEntries()));
         } else {
             xTick.setFormat(new LamiLabelFormat(xMap));
             updateTickMark(xMap, xTick, getChart().getPlotArea().getSize().x);
@@ -254,11 +235,11 @@ public class LamiScatterViewer extends LamiXYChartViewer {
             getChart().getAxisSet().getXAxis(0).getGrid().setStyle(LineStyle.NONE);
         }
 
+
         /* Modify Y axis related chart styling */
         IAxisTick yTick = getChart().getAxisSet().getYAxis(0).getTick();
         if (areYAspectsContinuous) {
-            /* Set the formatter on the Y axis */
-            yTick.setFormat(new DecimalUnitFormat());
+            yTick.setFormat(getContinuousAxisFormatter(yAxisAspects, getResultTable().getEntries()));
         } else {
             yTick.setFormat(new LamiLabelFormat(yMap));
             updateTickMark(yMap, yTick, getChart().getPlotArea().getSize().y);
@@ -315,7 +296,7 @@ public class LamiScatterViewer extends LamiXYChartViewer {
     private void generateLabelMap(List<LamiTableEntryAspect> aspects, BiMap<@Nullable String, Integer> map ) {
         TreeSet<@Nullable String> set = new TreeSet<>();
         for (LamiTableEntryAspect aspect : aspects) {
-            for (LamiTableEntry entry : fInternalEntryList) {
+            for (LamiTableEntry entry : getResultTable().getEntries()) {
                 String string = aspect.resolveString(entry);
                 if (string != null) {
                     set.add(string);
@@ -404,7 +385,7 @@ public class LamiScatterViewer extends LamiXYChartViewer {
                     if (tableEntryIndex < 0) {
                         continue;
                     }
-                    LamiTableEntry entry = fInternalEntryList.get(tableEntryIndex);
+                    LamiTableEntry entry = getResultTable().getEntries().get(tableEntryIndex);
                     int index = getResultTable().getEntries().indexOf(entry);
 
                     if (!ctrlMode || !selections.remove(index)) {
@@ -482,7 +463,7 @@ public class LamiScatterViewer extends LamiXYChartViewer {
         /* Translate to internal table location */
         Set<Integer> indexes = super.getSelection();
         Set<Integer> internalIndexes = indexes.stream()
-                .mapToInt(index -> fInternalEntryList.indexOf((getResultTable().getEntries().get(index))))
+                .mapToInt(index -> getResultTable().getEntries().indexOf((getResultTable().getEntries().get(index))))
                 .boxed()
                 .collect(Collectors.toSet());
         return internalIndexes;

@@ -174,8 +174,8 @@ public class LamiSeriesDialog extends SelectionDialog {
         fSeriesListViewer.setInput(series);
         fSeriesListViewer.getTable().setHeaderVisible(true);
         fSeriesListViewer.getTable().setLinesVisible(true);
-        TableViewerColumn column1 = createTableViewerColumn(fSeriesListViewer, Messages.LamiSeriesDialog_x_values, element -> element.getXAspect().getName());
-        TableViewerColumn column2 = createTableViewerColumn(fSeriesListViewer, Messages.LamiSeriesDialog_y_values, element -> element.getYAspect().getName());
+        TableViewerColumn column1 = createTableViewerColumn(fSeriesListViewer, Messages.LamiSeriesDialog_x_values, element -> element.getXAspect().getLabel());
+        TableViewerColumn column2 = createTableViewerColumn(fSeriesListViewer, Messages.LamiSeriesDialog_y_values, element -> element.getYAspect().getLabel());
         layout.setColumnData(column1.getColumn(), new ColumnWeightData(1, MINIMUM_COLUMN_WIDTH, true));
         layout.setColumnData(column2.getColumn(), new ColumnWeightData(1, MINIMUM_COLUMN_WIDTH, true));
 

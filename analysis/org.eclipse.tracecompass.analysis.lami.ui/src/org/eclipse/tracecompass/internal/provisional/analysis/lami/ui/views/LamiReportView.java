@@ -230,14 +230,14 @@ public final class LamiReportView extends TmfView {
                     new LabelProvider() {
                         @Override
                         public String getText(@Nullable Object element) {
-                            return ((LamiTableEntryAspect) checkNotNull(element)).getName();
+                            return ((LamiTableEntryAspect) checkNotNull(element)).getLabel();
                         }
                     },
                     contentProvider,
                     new LabelProvider() {
                         @Override
                         public String getText(@Nullable Object element) {
-                            return ((LamiTableEntryAspect) checkNotNull(element)).getName();
+                            return ((LamiTableEntryAspect) checkNotNull(element)).getLabel();
                         }
                     });
             dialog.setTitle(icfChartType.toString() + ' ' + Messages.LamiSeriesDialog_creation);
@@ -308,19 +308,19 @@ public final class LamiReportView extends TmfView {
             case BAR_CHART:
                 /* Validate that we only have 1 X aspect */
                 if (results.stream()
-                        .map(element -> element.getXAspect().getName())
+                        .map(element -> element.getXAspect().getLabel())
                         .distinct()
                         .count() != 1) {
                     throw new IllegalStateException();
                 }
                 xAxisColString = results.stream()
-                        .map(element -> element.getXAspect().getName())
+                        .map(element -> element.getXAspect().getLabel())
                         .distinct()
                         .collect(Collectors.toList());
                 break;
             case XY_SCATTER:
                 xAxisColString = results.stream()
-                        .map(element -> element.getXAspect().getName())
+                        .map(element -> element.getXAspect().getLabel())
                         .collect(Collectors.toList());
                 break;
             default:
@@ -328,7 +328,7 @@ public final class LamiReportView extends TmfView {
             }
 
             yAxisColString = results.stream()
-                    .map(element -> element.getYAspect().getName())
+                    .map(element -> element.getYAspect().getLabel())
                     .collect(Collectors.toList());
 
             LamiChartModel model = new LamiChartModel(icfChartType,

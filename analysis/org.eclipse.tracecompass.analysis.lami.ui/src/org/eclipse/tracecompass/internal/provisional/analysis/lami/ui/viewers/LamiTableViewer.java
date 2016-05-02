@@ -138,7 +138,7 @@ public final class LamiTableViewer extends TmfSimpleTableViewer implements ILami
             @Override
             public void run() {
                 for (LamiTableEntryAspect aspect : aspects) {
-                    createColumn(aspect.getName(), new LamiTableColumnLabelProvider(aspect), aspect.getComparator());
+                    createColumn(aspect.getLabel(), new LamiTableColumnLabelProvider(aspect), aspect.getComparator());
                 }
             }
         });

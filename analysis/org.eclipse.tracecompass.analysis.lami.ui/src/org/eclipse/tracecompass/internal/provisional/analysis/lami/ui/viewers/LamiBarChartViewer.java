@@ -33,7 +33,6 @@ import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
-import org.eclipse.tracecompass.common.core.format.DecimalUnitFormat;
 import org.eclipse.tracecompass.internal.provisional.analysis.lami.core.aspect.LamiTableEntryAspect;
 import org.eclipse.tracecompass.internal.provisional.analysis.lami.core.module.LamiChartModel;
 import org.eclipse.tracecompass.internal.provisional.analysis.lami.core.module.LamiChartModel.ChartType;
@@ -42,6 +41,7 @@ import org.eclipse.tracecompass.internal.provisional.analysis.lami.core.module.L
 import org.eclipse.tracecompass.internal.provisional.analysis.lami.ui.signals.LamiSelectionUpdateSignal;
 import org.eclipse.tracecompass.tmf.core.signal.TmfSignalManager;
 import org.swtchart.IAxis;
+import org.swtchart.IAxisTick;
 import org.swtchart.IBarSeries;
 import org.swtchart.ISeries;
 import org.swtchart.ISeries.SeriesType;
@@ -160,7 +160,7 @@ public class LamiBarChartViewer extends LamiXYChartViewer {
                 indexMapping.add(new Mapping(categoryIndex, checkNotNull(fEntryToCategoriesMap.get(checkNotNull(entries.get(i)))).fModelValue));
             }
 
-            String name = yAxisAspect.getName();
+            String name = yAxisAspect.getLabel();
 
             IBarSeries barSeries = (IBarSeries) getChart().getSeriesSet().createSeries(SeriesType.BAR, name);
             barSeries.setXSeries(validXValues.stream().mapToDouble(Double::doubleValue).toArray());
@@ -174,7 +174,8 @@ public class LamiBarChartViewer extends LamiXYChartViewer {
         Stream.of(getChart().getAxisSet().getYAxes()).forEach(axis -> axis.enableLogScale(logscale));
 
         /* Set the formatter on the Y axis */
-        getChart().getAxisSet().getYAxis(0).getTick().setFormat(new DecimalUnitFormat());
+        IAxisTick yTick = getChart().getAxisSet().getYAxis(0).getTick();
+        yTick.setFormat(getContinuousAxisFormatter(yAxisAspects, entries));
 
         /* Adjust the chart range */
         getChart().getAxisSet().adjustRange();

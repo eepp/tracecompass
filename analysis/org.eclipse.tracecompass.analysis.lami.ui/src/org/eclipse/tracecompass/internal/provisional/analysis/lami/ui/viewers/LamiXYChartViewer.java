@@ -12,10 +12,12 @@ package org.eclipse.tracecompass.internal.provisional.analysis.lami.ui.viewers;
 import static org.eclipse.tracecompass.common.core.NonNullUtils.checkNotNull;
 import static org.eclipse.tracecompass.common.core.NonNullUtils.nullToEmptyString;
 
+import java.text.Format;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.function.ToDoubleFunction;
 
 import org.eclipse.jdt.annotation.NonNull;
@@ -30,9 +32,12 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Listener;
+import org.eclipse.tracecompass.common.core.format.DecimalUnitFormat;
 import org.eclipse.tracecompass.internal.provisional.analysis.lami.core.aspect.LamiTableEntryAspect;
 import org.eclipse.tracecompass.internal.provisional.analysis.lami.core.module.LamiChartModel;
 import org.eclipse.tracecompass.internal.provisional.analysis.lami.core.module.LamiResultTable;
+import org.eclipse.tracecompass.internal.provisional.analysis.lami.core.module.LamiTableEntry;
+import org.eclipse.tracecompass.internal.provisional.analysis.lami.core.module.LamiTimeStampFormat;
 import org.eclipse.tracecompass.internal.provisional.analysis.lami.ui.signals.LamiSelectionUpdateSignal;
 import org.eclipse.tracecompass.tmf.core.signal.TmfSignalHandler;
 import org.eclipse.tracecompass.tmf.ui.viewers.TmfViewer;
@@ -96,6 +101,41 @@ public abstract class LamiXYChartViewer extends TmfViewer implements ILamiViewer
                 new Color(Display.getDefault(), 220, 238, 246)
                 );
 
+    /**
+     * Time stamp formatter for intervals in the days range.
+     */
+    protected static final LamiTimeStampFormat DAYS_FORMATTER = new LamiTimeStampFormat("dd HH:mm"); //$NON-NLS-1$
+
+    /**
+     * Time stamp formatter for intervals in the hours range.
+     */
+    protected static final LamiTimeStampFormat HOURS_FORMATTER = new LamiTimeStampFormat("HH:mm"); //$NON-NLS-1$
+
+    /**
+     * Time stamp formatter for intervals in the minutes range.
+     */
+    protected static final LamiTimeStampFormat MINUTES_FORMATTER = new LamiTimeStampFormat("mm:ss"); //$NON-NLS-1$
+
+    /**
+     * Time stamp formatter for intervals in the seconds range.
+     */
+    protected static final LamiTimeStampFormat SECONDS_FORMATTER = new LamiTimeStampFormat("ss"); //$NON-NLS-1$
+
+    /**
+     * Time stamp formatter for intervals in the milliseconds range.
+     */
+    protected static final LamiTimeStampFormat MILLISECONDS_FORMATTER = new LamiTimeStampFormat("ss.SSS"); //$NON-NLS-1$
+
+    /**
+     * Decimal formatter to display nanoseconds as seconds.
+     */
+    protected static final DecimalUnitFormat NANO_TO_SECS_FORMATTER = new DecimalUnitFormat(0.000000001);
+
+    /**
+     * Default decimal formatter.
+     */
+    protected static final DecimalUnitFormat DECIMAL_FORMATTER = new DecimalUnitFormat();
+
     private final Listener fResizeListener = event -> {
         /* Refresh the titles to fit the current chart size */
         refreshDisplayTitles();
@@ -148,6 +188,10 @@ public abstract class LamiXYChartViewer extends TmfViewer implements ILamiViewer
              * Y axis (and hide the legend).
              */
             String seriesName = getChartModel().getXSeriesColumns().get(0);
+            // The time duration formatter converts ns to s on the axis
+            if ("ns".equals(getXAxisAspects().get(0).getUnits())) { //$NON-NLS-1$
+                seriesName = getXAxisAspects().get(0).getName() + " (s)"; //$NON-NLS-1$
+            }
             fXTitle = seriesName;
         } else {
             /*
@@ -159,9 +203,14 @@ public abstract class LamiXYChartViewer extends TmfViewer implements ILamiViewer
                 .distinct()
                 .count();
 
-            if (nbDiffAspects == 1) {
+            String units = getXAxisAspects().get(0).getUnits();
+            if (nbDiffAspects == 1 && units != null) {
                 /* All aspects use the same unit type */
-                String units = getXAxisAspects().get(0).getUnits();
+
+                // The time duration formatter converts ns to s on the axis
+                if ("ns".equals(units)) { //$NON-NLS-1$
+                    units = "s"; //$NON-NLS-1$
+                }
                 fXTitle = Messages.LamiViewer_DefaultValueName + " (" + units + ')'; //$NON-NLS-1$
             } else {
                 /* Various unit types, just say "Value" */
@@ -176,6 +225,10 @@ public abstract class LamiXYChartViewer extends TmfViewer implements ILamiViewer
              * Y axis (and hide the legend).
              */
             String seriesName = getChartModel().getYSeriesColumns().get(0);
+            // The time duration formatter converts ns to s on the axis
+            if ("ns".equals(getYAxisAspects().get(0).getUnits())) { //$NON-NLS-1$
+                seriesName = getYAxisAspects().get(0).getName() + " (s)"; //$NON-NLS-1$
+            }
             fYTitle = seriesName;
             fChart.getLegend().setVisible(false);
         } else {
@@ -191,6 +244,11 @@ public abstract class LamiXYChartViewer extends TmfViewer implements ILamiViewer
             String units = getYAxisAspects().get(0).getUnits();
             if (nbDiffAspects == 1 && units != null) {
                 /* All aspects use the same unit type */
+
+                // The time duration formatter converts ns to s on the axis
+                if ("ns".equals(units)) { //$NON-NLS-1$
+                    units = "s"; //$NON-NLS-1$
+                }
                 fYTitle = Messages.LamiViewer_DefaultValueName + " (" + units + ')'; //$NON-NLS-1$
             } else {
                 /* Various unit types, just say "Value" */
@@ -211,11 +269,93 @@ public abstract class LamiXYChartViewer extends TmfViewer implements ILamiViewer
         /* Set X label 90 degrees */
         fChart.getAxisSet().getXAxis(0).getTick().setTickLabelAngle(90);
 
-        /* TODO: Set X label format depending on datatype? */
-        //fChart.getAxisSet().getXAxis(0).setFormat(new DecimalFormat("#####.#M"));
-
         /* Refresh the titles to fit the current chart size */
         refreshDisplayTitles();
+    }
+
+    /**
+     * Util method to check if a list of aspects are all continuous.
+     *
+     * @param axisAspects
+     *            The list of aspects to check.
+     * @return true is all aspects are continuous, otherwise false.
+     */
+    protected static boolean areAspectsContinuous(List<LamiTableEntryAspect> axisAspects) {
+        return axisAspects.stream().allMatch(aspect -> aspect.isContinuous());
+    }
+
+    /**
+     * Util method to check if a list of aspects are all time stamps.
+     *
+     * @param axisAspects
+     *            The list of aspects to check.
+     * @return true is all aspects are time stamps, otherwise false.
+     */
+    protected static boolean areAspectsTimeStamp(List<LamiTableEntryAspect> axisAspects) {
+        return axisAspects.stream().allMatch(aspect -> aspect.isTimeStamp());
+    }
+
+    /**
+     * Util method to check if a list of aspects are all time durations.
+     *
+     * @param axisAspects
+     *            The list of aspects to check.
+     * @return true is all aspects are time durations, otherwise false.
+     */
+    protected static boolean areAspectsTimeDuration(List<LamiTableEntryAspect> axisAspects) {
+        return axisAspects.stream().allMatch(aspect -> aspect.isTimeDuration());
+    }
+
+    /**
+     * Util method that will return a formatter based on the aspects linked to an axis
+     *
+     * If all aspects are time stamps, return a timestamp formatter tuned to the interval.
+     * If all aspects are time durations, return the nanoseconds to seconds formatter.
+     * Otherwise, return the generic decimal formatter.
+     *
+     * @param axisAspects
+     *            The list of aspects of the axis.
+     * @param entries
+     *            The list of entries of the chart.
+     * @return a formatter for the axis.
+     */
+    protected static Format getContinuousAxisFormatter(List<LamiTableEntryAspect> axisAspects, List<LamiTableEntry> entries) {
+
+        if (areAspectsTimeStamp(axisAspects)) {
+            /* Set a TimeStamp formatter depending on the duration between the first and last value */
+            double max = Double.MIN_VALUE;
+            double min = Double.MAX_VALUE;
+
+            for (LamiTableEntry entry : entries) {
+                for (LamiTableEntryAspect aspect : axisAspects) {
+                    Double current = aspect.resolveDouble(entry);
+                    if (current != null) {
+                        max = Math.max(max, current);
+                        min = Math.min(min, current);
+                    }
+                }
+            }
+            long duration = (long) max - (long) min;
+
+            if (duration > TimeUnit.DAYS.toNanos(1)) {
+                return DAYS_FORMATTER;
+            } else if (duration > TimeUnit.HOURS.toNanos(1)) {
+                return HOURS_FORMATTER;
+            } else if (duration > TimeUnit.MINUTES.toNanos(1)) {
+                return MINUTES_FORMATTER;
+            } else if (duration > TimeUnit.SECONDS.toNanos(15)) {
+                return SECONDS_FORMATTER;
+            } else {
+                return MILLISECONDS_FORMATTER;
+            }
+        } else if (areAspectsTimeDuration(axisAspects)) {
+            /* Set the time duration formatter */
+            return NANO_TO_SECS_FORMATTER;
+
+        } else {
+            /* For other numeric aspects, use the default decimal unit formatter */
+            return DECIMAL_FORMATTER;
+        }
     }
 
     /**
@@ -405,7 +545,7 @@ public abstract class LamiXYChartViewer extends TmfViewer implements ILamiViewer
     protected static @Nullable LamiTableEntryAspect getAspectFromName(List<LamiTableEntryAspect> aspects, String aspectName) {
         for (LamiTableEntryAspect lamiTableEntryAspect : aspects) {
 
-            if (lamiTableEntryAspect.getName().equals(aspectName)) {
+            if (lamiTableEntryAspect.getLabel().equals(aspectName)) {
                 return lamiTableEntryAspect;
             }
         }

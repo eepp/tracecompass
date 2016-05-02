@@ -23,11 +23,36 @@ public class LamiTimeStampFormat extends SimpleDateFormat {
 
     private static final long serialVersionUID = 4285447886537779762L;
 
+    private final TmfTimestampFormat fFormat;
+
+    // ------------------------------------------------------------------------
+    // Constructors
+    // ------------------------------------------------------------------------
+
+    /**
+     * The default constructor (uses the default time format)
+     */
+    public LamiTimeStampFormat() {
+        fFormat = TmfTimestampFormat.getDefaulTimeFormat();
+    }
+
+    /**
+     * The normal constructor
+     *
+     * @param pattern the format pattern
+     */
+    public LamiTimeStampFormat(String pattern) {
+        fFormat = new TmfTimestampFormat(pattern);
+    }
+
+    // ------------------------------------------------------------------------
+    // Operations
+    // ------------------------------------------------------------------------
     @Override
     public StringBuffer format(@Nullable Date date,  @Nullable StringBuffer toAppendTo, @Nullable FieldPosition fieldPosition) {
         if (date != null && toAppendTo != null) {
             long time = date.getTime();
-            toAppendTo.append(TmfTimestampFormat.getDefaulTimeFormat().format(time));
+            toAppendTo.append(fFormat.format(time));
             return toAppendTo;
         }
         return new StringBuffer();

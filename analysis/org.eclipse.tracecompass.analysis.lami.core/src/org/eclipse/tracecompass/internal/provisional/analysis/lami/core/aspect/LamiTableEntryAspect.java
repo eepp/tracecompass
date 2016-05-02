@@ -39,16 +39,25 @@ public abstract class LamiTableEntryAspect {
      */
     protected LamiTableEntryAspect(String name, @Nullable String units) {
         fUnits = units;
-
-        if (fUnits == null) {
-            fName = name;
-        } else {
-            fName = (name + " (" + fUnits + ')'); //$NON-NLS-1$
-        }
+        fName = name;
     }
 
     /**
-     * Get the name of this aspect.
+     * Get the label of this aspect.
+     *
+     * The label is composed of the name followed by the units in parentheses.
+     *
+     * @return The label
+     */
+    public String getLabel() {
+        if (getUnits() == null) {
+            return getName();
+        }
+        return (getName() + " (" + getUnits() + ')'); //$NON-NLS-1$
+    }
+
+    /**
+     * Get the name of this aspect
      *
      * @return The name
      */
@@ -59,7 +68,7 @@ public abstract class LamiTableEntryAspect {
     /**
      * Get the units of this aspect.
      *
-     * @return The name
+     * @return The units
      */
     public @Nullable String getUnits() {
         return fUnits;

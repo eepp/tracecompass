@@ -111,14 +111,14 @@ public class LamiJsonParserTest {
         assertFalse(aspects.isEmpty());
         assertEquals(8, aspects.size());
 
-        assertEquals("System call", aspects.get(0).getName());
-        assertEquals("Duration (ns)", aspects.get(1).getName());
-        assertEquals("Size (bytes)", aspects.get(2).getName());
-        assertEquals("Bitrate (bps)", aspects.get(3).getName());
-        assertEquals("Time range (begin)", aspects.get(4).getName());
-        assertEquals("Time range (end)", aspects.get(5).getName());
-        assertEquals("Time range (duration) (ns)", aspects.get(6).getName());
-        assertEquals("", aspects.get(7).getName()); // Empty aspect to fix SWT display bug
+        assertEquals("System call", aspects.get(0).getLabel());
+        assertEquals("Duration (ns)", aspects.get(1).getLabel());
+        assertEquals("Size (bytes)", aspects.get(2).getLabel());
+        assertEquals("Bitrate (bps)", aspects.get(3).getLabel());
+        assertEquals("Time range (begin)", aspects.get(4).getLabel());
+        assertEquals("Time range (end)", aspects.get(5).getLabel());
+        assertEquals("Time range (duration) (ns)", aspects.get(6).getLabel());
+        assertEquals("", aspects.get(7).getLabel()); // Empty aspect to fix SWT display bug
     }
 
     /**

@@ -60,7 +60,7 @@ public class LamiXYSeries {
 
     @Override
     public String toString() {
-        return "x:" + fXAspect.getName() + " y:" + fYAspect.getName(); //$NON-NLS-1$ //$NON-NLS-2$
+        return "x:" + fXAspect.getLabel() + " y:" + fYAspect.getLabel(); //$NON-NLS-1$ //$NON-NLS-2$
     }
 
     @Override
