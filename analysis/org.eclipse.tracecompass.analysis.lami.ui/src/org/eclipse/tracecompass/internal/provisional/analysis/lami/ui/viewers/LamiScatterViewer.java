@@ -116,7 +116,7 @@ public class LamiScatterViewer extends LamiXYChartViewer {
         /*
          * Create Y series
          */
-        List<LamiTableEntryAspect> yAspects = getYAxisAspects();
+        List<LamiTableEntryAspect> yAxisAspects = getYAxisAspects();
         BiMap<@Nullable String, Integer> yMap = checkNotNull(HashBiMap.create());
         boolean yIsLog = graphModel.yAxisIsLog();
 
