@@ -12,6 +12,7 @@ package org.eclipse.tracecompass.internal.provisional.analysis.lami.ui.viewers;
 import static org.eclipse.tracecompass.common.core.NonNullUtils.checkNotNull;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -22,8 +23,11 @@ import java.util.TreeSet;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.MouseMoveListener;
 import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.graphics.Color;
@@ -60,6 +64,12 @@ public class LamiScatterViewer extends LamiXYChartViewer {
 
     private Map<ISeries,List<Integer>> fIndexMapping;
 
+    /* The current data point for the hovering cross */
+    private Point fHoveringCrossDataPoint;
+
+    private static final int SELECTION_SNAP_RANGE_MULTIPLIER = 20;
+    private static final int SELECTION_CROSS_SIZE_MULTIPLIER = 3;
+
     /**
      * Constructor
      *
@@ -78,6 +88,8 @@ public class LamiScatterViewer extends LamiXYChartViewer {
 
         /* Inspect X series */
         fIndexMapping = new HashMap<>();
+
+        fHoveringCrossDataPoint = new Point(-1, -1);
 
         List<LamiTableEntryAspect> xAxisAspects = getXAxisAspects();
         if (xAxisAspects.stream().distinct().count() == 1) {
@@ -109,7 +121,7 @@ public class LamiScatterViewer extends LamiXYChartViewer {
          * series
          */
         if (!areXAspectsContinuous) {
-           generateLabelMap(xAxisAspects, xMap);
+           generateLabelMap(xAxisAspects, checkNotNull(xMap));
         }
 
 
@@ -204,7 +216,7 @@ public class LamiScatterViewer extends LamiXYChartViewer {
                     continue;
                 }
                 if ((xIsLog && xValue <= ZERO) || (yIsLog && yValue <= ZERO)) {
-                    /* Equal or less than 0 values can't be plotted on logscale */
+                    /* Equal or less than 0 values can't be plotted on log scale */
                     continue;
                 }
                     validXDoubleSeries.add(xValue);
@@ -228,8 +240,8 @@ public class LamiScatterViewer extends LamiXYChartViewer {
         if (areXAspectsContinuous) {
             xTick.setFormat(getContinuousAxisFormatter(xAxisAspects, getResultTable().getEntries()));
         } else {
-            xTick.setFormat(new LamiLabelFormat(xMap));
-            updateTickMark(xMap, xTick, getChart().getPlotArea().getSize().x);
+            xTick.setFormat(new LamiLabelFormat(checkNotNull(xMap)));
+            updateTickMark(checkNotNull(xMap), xTick, getChart().getPlotArea().getSize().x);
 
             /* Remove vertical grid line */
             getChart().getAxisSet().getXAxis(0).getGrid().setStyle(LineStyle.NONE);
@@ -241,8 +253,8 @@ public class LamiScatterViewer extends LamiXYChartViewer {
         if (areYAspectsContinuous) {
             yTick.setFormat(getContinuousAxisFormatter(yAxisAspects, getResultTable().getEntries()));
         } else {
-            yTick.setFormat(new LamiLabelFormat(yMap));
-            updateTickMark(yMap, yTick, getChart().getPlotArea().getSize().y);
+            yTick.setFormat(new LamiLabelFormat(checkNotNull(yMap)));
+            updateTickMark(checkNotNull(yMap), yTick, getChart().getPlotArea().getSize().y);
 
             /*
              * SWTCHART workaround: Swtchart fiddle with tick mark visibility
@@ -273,21 +285,51 @@ public class LamiScatterViewer extends LamiXYChartViewer {
             /* Set the axis as logscale */
             Stream.of(getChart().getAxisSet().getYAxes()).forEach(axis -> axis.enableLogScale(yIsLog));
         }
-
         getChart().getAxisSet().adjustRange();
 
+        /*
+         * Selection listner
+         */
         getChart().getPlotArea().addListener(SWT.MouseDown, new LamiScatterMouseDownListener());
+
+
+        /*
+         * Hovering cross listener
+         */
+        getChart().getPlotArea().addMouseMoveListener(new HoveringCrossListener());
+
+        /*
+         * Mouse exit listener
+         * Reset state of hovering cross on mouse exit.
+         *
+         */
+        getChart().getPlotArea().addListener(SWT.MouseExit, new Listener() {
+
+            @Override
+            public void handleEvent(@Nullable Event event) {
+                if (event != null) {
+                    fHoveringCrossDataPoint.x = -1;
+                    fHoveringCrossDataPoint.y = -1;
+                    redraw();
+                }
+            }
+        });
+
+        /*
+         * Selections and hovering cross painting
+         */
         getChart().getPlotArea().addPaintListener(new LamiScatterPainterListener());
+
 
         /* On resize check for axis tick updating */
         getChart().addListener(SWT.Resize, new Listener() {
             @Override
             public void handleEvent(@Nullable Event event) {
                 if (yTick.getFormat() instanceof LamiLabelFormat) {
-                    updateTickMark(yMap, yTick, getChart().getPlotArea().getSize().y);
+                    updateTickMark(checkNotNull(yMap), yTick, getChart().getPlotArea().getSize().y);
                 }
                 if (xTick.getFormat() instanceof LamiLabelFormat) {
-                    updateTickMark(xMap, xTick, getChart().getPlotArea().getSize().x);
+                    updateTickMark(checkNotNull(xMap), xTick, getChart().getPlotArea().getSize().x);
                 }
             }
         });
@@ -323,17 +365,65 @@ public class LamiScatterViewer extends LamiXYChartViewer {
              * Generate initial array of Color to enable per point color change
              * on selection in the future
              */
-            ArrayList<Color> colors = new ArrayList<>();
+             ArrayList<Color> colors = new ArrayList<>();
             for (int i = 0; i < series.getXSeries().length; i++) {
                 Color color = ((ILineSeries) series).getSymbolColor();
                 colors.add(checkNotNull(color));
             }
             ((ILineSeries) series).setSymbolColors(colors.toArray(new Color[colors.size()]));
         }
+    }
 
+    /**
+     * Listeners
+     */
+
+    private final class HoveringCrossListener implements MouseMoveListener {
+
+        @Override
+        public void mouseMove(@Nullable MouseEvent e) {
+            if (e == null) {
+                return;
+            }
+            ISeries[] series = getChart().getSeriesSet().getSeries();
+            @Nullable Point closest = null;
+            double closestDistance = -1.0;
+
+            for (ISeries oneSeries : series) {
+                ILineSeries lineSerie = (ILineSeries) oneSeries;
+                for (int i = 0; i < lineSerie.getXSeries().length; i++) {
+                    Point dataPoint = lineSerie.getPixelCoordinates(i);
+
+                    /*
+                     * Find the distance between the data point and the mouse
+                     * location and compare it to the symbol size * the range
+                     * multiplier so when a user hover the mouse near the dot
+                     * the cursor cross snap to it
+                     */
+
+                    int snapRangeRadius = lineSerie.getSymbolSize() * SELECTION_SNAP_RANGE_MULTIPLIER;
+                    double distance = Math.hypot(dataPoint.x - e.x, dataPoint.y - e.y);
+                    if (distance < snapRangeRadius) {
+                        if (closestDistance == -1 || distance < closestDistance) {
+                            closest = dataPoint;
+                            closestDistance = distance;
+                        }
+                    }
+                }
+            }
+            if (closest != null) {
+                fHoveringCrossDataPoint.x = closest.x;
+                fHoveringCrossDataPoint.y = closest.y;
+            } else {
+                fHoveringCrossDataPoint.x = -1;
+                fHoveringCrossDataPoint.y = -1;
+            }
+            refresh();
+        }
     }
 
     private final class LamiScatterMouseDownListener implements Listener {
+
         @Override
         public void handleEvent(@Nullable Event event) {
             if (event == null) {
@@ -370,9 +460,9 @@ public class LamiScatterViewer extends LamiXYChartViewer {
                      * location and compare it to the symbol size so when a user
                      * click on a symbol it select it.
                      */
-
                     double distance = Math.hypot(dataPoint.x - xMouseLocation, dataPoint.y - yMouseLocation);
-                    if (distance < lineSerie.getSymbolSize()) {
+                    int snapRangeRadius = lineSerie.getSymbolSize()*SELECTION_SNAP_RANGE_MULTIPLIER;
+                    if (distance < snapRangeRadius) {
                         if (closestDistance == -1 || distance < closestDistance) {
                             closest = i;
                             closestDistance = distance;
@@ -404,6 +494,74 @@ public class LamiScatterViewer extends LamiXYChartViewer {
         }
     }
 
+    private final class LamiScatterPainterListener implements PaintListener {
+
+        @Override
+        public void paintControl(@Nullable PaintEvent e) {
+            if (e == null) {
+                return;
+            }
+            GC gc = e.gc;
+
+            /* Draw the selection */
+            drawSelectedDot(checkNotNull(gc));
+
+            /* Draw the hovering cross*/
+            drawHoveringCross(checkNotNull(gc));
+        }
+
+        private void drawSelectedDot(GC gc) {
+            if (isSelected()) {
+                Iterator<Color> colorsIt;
+                colorsIt = Iterators.cycle(COLORS);
+                for (ISeries series : getChart().getSeriesSet().getSeries()) {
+
+                    /* Get series colors */
+                    Color color = colorsIt.next();
+                    int symbolSize = ((ILineSeries) series).getSymbolSize();
+
+                    for (int index : getInternalSelections()) {
+                        int graphIndex = getGraphIndexFromTableEntryIndex(series, index);
+
+                        if (graphIndex < 0) {
+                            continue;
+                        }
+                        Point point = series.getPixelCoordinates(graphIndex);
+
+                        /* Create a colored dot for selection */
+                        gc.setBackground(color);
+                        gc.fillOval(point.x - symbolSize, point.y - symbolSize, symbolSize * 2, symbolSize * 2);
+
+                        /* Draw cross */
+                        gc.setLineWidth(2);
+                        gc.setLineStyle(SWT.LINE_SOLID);
+                        /* Vertical line */
+                        int drawingDelta = SELECTION_CROSS_SIZE_MULTIPLIER * symbolSize;
+                        gc.drawLine(point.x, point.y - drawingDelta, point.x, point.y + drawingDelta);
+                        /* Horizontal line */
+                        gc.drawLine(point.x - drawingDelta, point.y, point.x + drawingDelta, point.y);
+
+                    }
+                }
+            }
+        }
+
+        private void drawHoveringCross(GC gc) {
+            gc.setLineWidth(1);
+            gc.setLineStyle(SWT.LINE_SOLID);
+            gc.setForeground(Display.getCurrent().getSystemColor(SWT.COLOR_BLACK));
+            gc.setBackground(Display.getCurrent().getSystemColor(SWT.COLOR_WHITE));
+            /* Vertical line */
+            gc.drawLine(fHoveringCrossDataPoint.x, 0, fHoveringCrossDataPoint.x, getChart().getPlotArea().getSize().y);
+            /* Horizontal line */
+            gc.drawLine(0, fHoveringCrossDataPoint.y, getChart().getPlotArea().getSize().x, fHoveringCrossDataPoint.y);
+        }
+    }
+
+    /*
+     * Utility functions
+     */
+
     private int getTableEntryIndexFromGraphIndex(ISeries series,int index) {
         List<Integer> indexes = fIndexMapping.get(series);
         if (indexes == null || index > indexes.size() || index < 0) {
@@ -418,36 +576,6 @@ public class LamiScatterViewer extends LamiXYChartViewer {
             return -1;
         }
         return indexes.indexOf(index);
-    }
-
-
-
-    private final class LamiScatterPainterListener implements PaintListener {
-        @Override
-        public void paintControl(@Nullable PaintEvent e) {
-            if (e == null || !isSelected()) {
-                return;
-            }
-            GC gc = e.gc;
-            gc.setBackground(Display.getDefault().getSystemColor(SWT.COLOR_DARK_MAGENTA));
-
-            gc.setLineWidth(1);
-            gc.setLineStyle(SWT.LINE_SOLID);
-            for (ISeries series : getChart().getSeriesSet().getSeries()) {
-                for (int index : getInternalSelections()) {
-                    /* Generate a cross for each selected dot */
-                    int graphIndex = getGraphIndexFromTableEntryIndex(checkNotNull(series), index);
-                    if (graphIndex < 0) {
-                        continue;
-                    }
-                    Point point = series.getPixelCoordinates(graphIndex);
-                    /* Vertical line */
-                    gc.drawLine(point.x, 0 , point.x, getChart().getPlotArea().getSize().y);
-                    /* Horizontal line */
-                    gc.drawLine(0, point.y, getChart().getPlotArea().getSize().x, point.y);
-                }
-            }
-        }
     }
 
     @Override
@@ -482,6 +610,39 @@ public class LamiScatterViewer extends LamiXYChartViewer {
             stepSizePixel = (int) IAxisTick.MIN_GRID_STEP_HINT;
         }
         tick.setTickMarkStepHint(stepSizePixel);
+    }
+
+    @Override
+    protected void setSelection(@NonNull Set<@NonNull Integer> selection) {
+        super.setSelection(selection);
+
+        /* Set color of selected symbol */
+        Iterator<Color> lightColorsIt;
+        Iterator<Color> colorsIt;
+
+        colorsIt = Iterators.cycle(COLORS);
+        lightColorsIt = Iterators.cycle(LIGHT_COLORS);
+
+        Set<Integer> currentSelections = getInternalSelections();
+
+        for (ISeries series : getChart().getSeriesSet().getSeries()) {
+            /* Series color */
+            Color lightColor = lightColorsIt.next();
+            Color color = colorsIt.next();
+            Color[] colors = ((ILineSeries) series).getSymbolColors();
+
+            if (currentSelections.isEmpty()){
+                /* Put all symbol the the normal colors */
+                Arrays.fill(colors, color);
+            } else {
+                /*
+                 * Fill with light colors deselected state The paint listener is
+                 * responsible to draw cross and dark color for the selection
+                 */
+                Arrays.fill(colors, lightColor);
+            }
+            ((ILineSeries) series).setSymbolColors(colors);
+        }
     }
 
 }

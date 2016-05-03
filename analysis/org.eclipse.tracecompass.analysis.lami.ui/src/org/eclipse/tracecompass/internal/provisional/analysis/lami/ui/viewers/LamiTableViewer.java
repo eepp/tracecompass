@@ -48,6 +48,7 @@ public final class LamiTableViewer extends TmfSimpleTableViewer implements ILami
     // ------------------------------------------------------------------------
 
     private final LamiResultTable fResultTable;
+    private Set<Integer> fSelections;
 
     // ------------------------------------------------------------------------
     // Inner class definitions
@@ -92,6 +93,8 @@ public final class LamiTableViewer extends TmfSimpleTableViewer implements ILami
                 selectionIndexes.add(fResultTable.getEntries().indexOf(selectedEntry));
             }
 
+            fSelections = selectionIndexes;
+
             /* Signal all Lami viewers & views of the selection */
             LamiSelectionUpdateSignal signal = new LamiSelectionUpdateSignal(LamiTableViewer.this, selectionIndexes, checkNotNull(fResultTable).hashCode());
             TmfSignalManager.dispatchSignal(signal);
@@ -118,6 +121,7 @@ public final class LamiTableViewer extends TmfSimpleTableViewer implements ILami
         tableViewer.getTable().moveAbove(null);
 
         fResultTable = resultTable;
+        fSelections = new HashSet<>();
 
         /* Default sort order of the content provider is by its first column */
         getTableViewer().setContentProvider(new LamiTableContentProvider());
@@ -125,6 +129,8 @@ public final class LamiTableViewer extends TmfSimpleTableViewer implements ILami
 
         createColumns();
         fillData();
+
+
     }
 
     // ------------------------------------------------------------------------
@@ -174,6 +180,21 @@ public final class LamiTableViewer extends TmfSimpleTableViewer implements ILami
                 cols[i].setAlignment(alignment);
 
             }
+
+            /*
+             * On creation check if there is selections if so update the table
+             * selections here. Selections needs the ContentProvider for valid
+             * index lookup and since the content provider is set in an
+             * asynchronous task we cannot use the normal signal handler since
+             * we have no guarantee of time of execution of the fill data.
+             */
+            if (!fSelections.isEmpty()) {
+                int[] selectionsIndexes = fSelections.stream().map(index -> fResultTable.getEntries().get(index)).mapToInt(entry -> ((LamiTableContentProvider) getTableViewer().getContentProvider()).getIndexOf(entry)).toArray();
+                Display.getDefault().asyncExec(() -> {
+                    getTableViewer().getTable().setSelection(selectionsIndexes);
+                    getTableViewer().getTable().redraw();
+                });
+            }
         });
         Display.getDefault().asyncExec(() -> {
             TableColumn[] cols = tableViewer.getTable().getColumns();
@@ -205,6 +226,8 @@ public final class LamiTableViewer extends TmfSimpleTableViewer implements ILami
                 .map(index -> fResultTable.getEntries().get(index))
                 .mapToInt(entry -> latencyContentProvider.getIndexOf(entry))
                 .toArray();
+
+        fSelections = new HashSet<>(selections);
 
         Display.getDefault().asyncExec(() -> {
             getTableViewer().getTable().setSelection(selectionsIndexes);

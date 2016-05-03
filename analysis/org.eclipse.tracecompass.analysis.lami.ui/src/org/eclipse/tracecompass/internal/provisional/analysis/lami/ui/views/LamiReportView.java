@@ -51,6 +51,7 @@ import org.eclipse.tracecompass.tmf.core.signal.TmfSignalManager;
 import org.eclipse.tracecompass.tmf.core.timestamp.ITmfTimestamp;
 import org.eclipse.tracecompass.tmf.core.timestamp.TmfTimeRange;
 import org.eclipse.tracecompass.tmf.core.timestamp.TmfTimestamp;
+import org.eclipse.tracecompass.tmf.core.trace.TmfTraceManager;
 import org.eclipse.tracecompass.tmf.ui.views.TmfView;
 
 import com.google.common.collect.Iterables;
@@ -91,6 +92,9 @@ public final class LamiReportView extends TmfView {
         super(VIEW_ID);
         fResultTable = LamiReportViewFactory.getCurrentResultTable();
         fSelectionIndexes = new HashSet<>();
+        if (fResultTable != null) {
+            fSelectionIndexes = getIndexOfEntriesIntersectingTimerange(checkNotNull(fResultTable), TmfTraceManager.getInstance().getCurrentTraceContext().getSelectionRange());
+        }
     }
 
     // ------------------------------------------------------------------------
@@ -149,6 +153,10 @@ public final class LamiReportView extends TmfView {
         menuMgr.add(newXYScatterAction);
         menuMgr.add(new Separator());
         menuMgr.add(clearCustomViewsAction);
+
+        /* Simulate a new external signal to the default viewer */
+        LamiSelectionUpdateSignal signal = new LamiSelectionUpdateSignal(LamiReportView.this, fSelectionIndexes, checkNotNull(fResultTable).hashCode());
+        TmfSignalManager.dispatchSignal(signal);
     }
 
     // ------------------------------------------------------------------------
@@ -421,12 +429,20 @@ public final class LamiReportView extends TmfView {
         }
         TmfTimeRange range = new TmfTimeRange(signal.getBeginTime(), signal.getEndTime());
 
+        Set<Integer> selections = getIndexOfEntriesIntersectingTimerange(table, range);
+
+        /* Update all LamiViewer */
+        LamiSelectionUpdateSignal signal1 = new LamiSelectionUpdateSignal(LamiReportView.this, selections, table.hashCode());
+        TmfSignalManager.dispatchSignal(signal1);
+    }
+
+    private static Set<Integer> getIndexOfEntriesIntersectingTimerange(LamiResultTable table, TmfTimeRange range) {
         Set<Integer> selections = new HashSet<>();
         for (LamiTableEntry entry : table.getEntries()) {
             LamiTimeRange timerange = entry.getCorrespondingTimeRange();
             if (timerange == null) {
                 /* Return since the table have no timerange */
-                return;
+                return selections;
             }
 
             TmfTimeRange tempTimeRange = new TmfTimeRange(TmfTimestamp.fromNanos(timerange.getStart()), TmfTimestamp.fromNanos(timerange.getEnd()));
@@ -434,9 +450,6 @@ public final class LamiReportView extends TmfView {
                 selections.add(table.getEntries().indexOf(entry));
             }
         }
-
-        /* Update all LamiViewer */
-        LamiSelectionUpdateSignal signal1 = new LamiSelectionUpdateSignal(LamiReportView.this, selections, table.hashCode());
-        TmfSignalManager.dispatchSignal(signal1);
+        return selections;
     }
 }
