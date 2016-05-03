@@ -66,6 +66,12 @@ public abstract class LamiXYChartViewer extends TmfViewer implements ILamiViewer
     /** Zero value */
     protected static final double ZERO = 0.0;
 
+    /** Symbol for seconds (used in the custom ns -> s conversion) */
+    private static final String SECONDS_SYMBOL = "s"; //$NON-NLS-1$
+
+    /** Symbol for nanoseconds (used in the custom ns -> s conversion) */
+    private static final String NANOSECONDS_SYMBOL = "ns"; //$NON-NLS-1$
+
     /**
      * Function to use to map Strings read from the data table to doubles for
      * use in SWTChart series.
@@ -189,8 +195,8 @@ public abstract class LamiXYChartViewer extends TmfViewer implements ILamiViewer
              */
             String seriesName = getChartModel().getXSeriesColumns().get(0);
             // The time duration formatter converts ns to s on the axis
-            if ("ns".equals(getXAxisAspects().get(0).getUnits())) { //$NON-NLS-1$
-                seriesName = getXAxisAspects().get(0).getName() + " (s)"; //$NON-NLS-1$
+            if (NANOSECONDS_SYMBOL.equals(getXAxisAspects().get(0).getUnits())) {
+                seriesName = getXAxisAspects().get(0).getName() + " (" + SECONDS_SYMBOL + ')'; //$NON-NLS-1$
             }
             fXTitle = seriesName;
         } else {
@@ -208,8 +214,8 @@ public abstract class LamiXYChartViewer extends TmfViewer implements ILamiViewer
                 /* All aspects use the same unit type */
 
                 // The time duration formatter converts ns to s on the axis
-                if ("ns".equals(units)) { //$NON-NLS-1$
-                    units = "s"; //$NON-NLS-1$
+                if (NANOSECONDS_SYMBOL.equals(units)) {
+                    units = SECONDS_SYMBOL;
                 }
                 fXTitle = Messages.LamiViewer_DefaultValueName + " (" + units + ')'; //$NON-NLS-1$
             } else {
@@ -226,8 +232,8 @@ public abstract class LamiXYChartViewer extends TmfViewer implements ILamiViewer
              */
             String seriesName = getChartModel().getYSeriesColumns().get(0);
             // The time duration formatter converts ns to s on the axis
-            if ("ns".equals(getYAxisAspects().get(0).getUnits())) { //$NON-NLS-1$
-                seriesName = getYAxisAspects().get(0).getName() + " (s)"; //$NON-NLS-1$
+            if (NANOSECONDS_SYMBOL.equals(getYAxisAspects().get(0).getUnits())) {
+                seriesName = getYAxisAspects().get(0).getName() + " (" + SECONDS_SYMBOL + ')'; //$NON-NLS-1$
             }
             fYTitle = seriesName;
             fChart.getLegend().setVisible(false);
@@ -246,8 +252,8 @@ public abstract class LamiXYChartViewer extends TmfViewer implements ILamiViewer
                 /* All aspects use the same unit type */
 
                 // The time duration formatter converts ns to s on the axis
-                if ("ns".equals(units)) { //$NON-NLS-1$
-                    units = "s"; //$NON-NLS-1$
+                if (NANOSECONDS_SYMBOL.equals(units)) {
+                    units = SECONDS_SYMBOL;
                 }
                 fYTitle = Messages.LamiViewer_DefaultValueName + " (" + units + ')'; //$NON-NLS-1$
             } else {
