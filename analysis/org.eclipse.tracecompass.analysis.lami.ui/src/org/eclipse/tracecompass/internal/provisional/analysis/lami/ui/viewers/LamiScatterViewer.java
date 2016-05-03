@@ -470,7 +470,8 @@ public class LamiScatterViewer extends LamiXYChartViewer {
     }
 
     private static void updateTickMark(BiMap<@Nullable String, Integer> map, IAxisTick tick, int availableLenghtPixel) {
-        int stepSizePixel = availableLenghtPixel / ((map.size() != 0) ? map.size() - 1 : 1);
+        int nbLabels = Math.max(1, map.size());
+        int stepSizePixel = availableLenghtPixel / nbLabels;
         /*
          * This step is a limitation on swtchart side regarding
          * minimal grid step hint size. When the step size are
