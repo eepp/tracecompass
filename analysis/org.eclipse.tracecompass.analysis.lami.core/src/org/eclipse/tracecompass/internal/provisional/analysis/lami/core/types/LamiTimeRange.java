@@ -18,22 +18,20 @@ import org.eclipse.jdt.annotation.Nullable;
  */
 public class LamiTimeRange extends LamiData {
 
-    private final long fStart;
-    private final long fEnd;
-    private final long fDuration;
+    private final LamiTimestamp fBegin;
+    private final LamiTimestamp fEnd;
 
     /**
      * Construct a new time range
      *
-     * @param start
-     *            Start time
+     * @param begin
+     *            Begin time
      * @param end
      *            End time
      */
-    public LamiTimeRange(long start, long end) {
-        fStart = start;
+    public LamiTimeRange(LamiTimestamp begin, LamiTimestamp end) {
+        fBegin = begin;
         fEnd = end;
-        fDuration = fEnd - fStart;
     }
 
     /**
@@ -41,8 +39,8 @@ public class LamiTimeRange extends LamiData {
      *
      * @return The start time
      */
-    public long getStart() {
-        return fStart;
+    public LamiTimestamp getBegin() {
+        return fBegin;
     }
 
     /**
@@ -50,20 +48,40 @@ public class LamiTimeRange extends LamiData {
      *
      * @return The end time
      */
-    public long getEnd() {
+    public LamiTimestamp getEnd() {
         return fEnd;
     }
+
     /**
      * Get the duration of this time range.
      *
      * @return The duration
      */
-    public long getDuration() {
-        return fDuration;
+    public @Nullable Long getDuration() {
+        // TODO: Consider the low and high limits.
+
+        // If both values exist, use the difference as the value
+        Number begin = fBegin.getValue();
+        Number end = fEnd.getValue();
+
+        if (begin != null && end != null) {
+            return end.longValue() - begin.longValue();
+        }
+
+        return null;
     }
 
     @Override
     public @Nullable String toString() {
-        return "[" + String.valueOf(fStart) + " - " + String.valueOf(fEnd) + "]"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+        Number startValue = fBegin.getValue();
+        Number endValue = fEnd.getValue();
+
+        // TODO: The string should probably include the low and
+        //       high limits here.
+        if (startValue != null && endValue != null) {
+            return "[" + String.valueOf(fBegin) + " - " + String.valueOf(fEnd) + "]"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+        }
+
+        return null;
     }
 }

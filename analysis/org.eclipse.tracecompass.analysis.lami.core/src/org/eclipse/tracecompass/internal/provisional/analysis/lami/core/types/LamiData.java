@@ -37,10 +37,12 @@ public abstract class LamiData {
 
         /* Generic JSON types */
         STRING("string", "Value", false, null, LamiString.class), //$NON-NLS-1$ //$NON-NLS-2$
-        INT("int", "Value", true, null, LamiInteger.class), //$NON-NLS-1$ //$NON-NLS-2$
-        FLOAT("float", "Value", true, null, LamiNumber.class), //$NON-NLS-1$ //$NON-NLS-2$
         NUMBER("number", "Value", true, null, LamiNumber.class), //$NON-NLS-1$ //$NON-NLS-2$
         BOOL("bool", "Value", false, null, LamiBoolean.class), //$NON-NLS-1$ //$NON-NLS-2$
+
+        /* Backward-compatibility with pre-1.0 LAMI protocol */
+        FLOAT("float", "Value", true, null, LamiNumber.class), //$NON-NLS-1$ //$NON-NLS-2$
+        INTEGER("int", "Value", true, null, LamiNumber.class), //$NON-NLS-1$ //$NON-NLS-2$
 
         /* Lami-specific data types */
         RATIO("ratio", "Ratio", true, "%", LamiRatio.class), //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
@@ -147,20 +149,6 @@ public abstract class LamiData {
     // ------------------------------------------------------------------------
 
     /**
-     * Convenience method to get the "value" field from a JSON object. Many LAMI
-     * types have a "value" field.
-     *
-     * @param obj
-     *            The JSON object
-     * @return The read value
-     * @throws JSONException
-     *             If the object does not actually have a "value" field.
-     */
-    private static final long getJSONObjectLongValue(JSONObject obj) throws JSONException {
-        return obj.getLong(LamiStrings.VALUE);
-    }
-
-    /**
      * Convenience method to get the "name" field from a JSON object. Many LAMI
      * types have a "nam" field.
      *
@@ -195,6 +183,7 @@ public abstract class LamiData {
         } else if (obj.equals(JSONObject.NULL)) {
             return LamiEmpty.INSTANCE;
         } else {
+            // Backward-compatibility with pre-1.0 LAMI protocol
             return createFromPrimitiveObject(obj);
         }
     }
@@ -204,16 +193,37 @@ public abstract class LamiData {
        R apply(T t) throws JSONException;
     }
 
+    @FunctionalInterface
+    private static interface LamiNumberFromValuesFunction {
+        public LamiNumber create(@Nullable Number low, @Nullable Number value, @Nullable Number high);
+    }
+
     /**
      * Map returning the Functions to build new LAMI objects for JSON primitive
      * types
+     */
+    private static final Map<String, LamiNumberFromValuesFunction> NUMBER_TYPE_GENERATOR;
+    static {
+        ImmutableMap.Builder<String, LamiNumberFromValuesFunction> numberTypeGenBuilder = ImmutableMap.builder();
+        numberTypeGenBuilder.put(LamiStrings.DATA_CLASS_NUMBER, (low, value, high) -> new LamiNumber(low, value, high));
+        numberTypeGenBuilder.put(LamiStrings.DATA_CLASS_RATIO, (low, value, high) -> new LamiRatio(low, value, high));
+        numberTypeGenBuilder.put(LamiStrings.DATA_CLASS_TIMESTAMP, (low, value, high) -> new LamiTimestamp(low, value, high));
+        numberTypeGenBuilder.put(LamiStrings.DATA_CLASS_DURATION, (low, value, high) -> new LamiDuration(low, value, high));
+        numberTypeGenBuilder.put(LamiStrings.DATA_CLASS_SIZE, (low, value, high) -> new LamiSize(low, value, high));
+        numberTypeGenBuilder.put(LamiStrings.DATA_CLASS_BITRATE, (low, value, high) -> new LamiBitrate(low, value, high));
+        NUMBER_TYPE_GENERATOR = numberTypeGenBuilder.build();
+    }
+
+    /**
+     * Map returning the Functions to build new LAMI number object from a
+     * LAMI data object class.
      */
     private static final Map<Class<?>, Function<Object, LamiData>> PRIMITIVE_TYPE_GENERATOR;
     static {
         ImmutableMap.Builder<Class<?>, Function<Object, LamiData>> primitiveTypeGenBuilder = ImmutableMap.builder();
         primitiveTypeGenBuilder.put(Boolean.class, (o) -> LamiBoolean.instance((Boolean) o));
-        primitiveTypeGenBuilder.put(Integer.class, (o) -> new LamiInteger(((Integer) o).longValue()));
-        primitiveTypeGenBuilder.put(Long.class, (o) -> new LamiInteger((Long) o));
+        primitiveTypeGenBuilder.put(Integer.class, (o) -> new LamiNumber(((Integer) o).longValue()));
+        primitiveTypeGenBuilder.put(Long.class, (o) -> new LamiNumber((Long) o));
         primitiveTypeGenBuilder.put(Double.class, (o) -> new LamiNumber((Double) o));
         primitiveTypeGenBuilder.put(String.class, (o) -> new LamiString((String) o));
         PRIMITIVE_TYPE_GENERATOR = primitiveTypeGenBuilder.build();
@@ -226,13 +236,22 @@ public abstract class LamiData {
     private static final Map<String, CheckedJSONExceptionFunction<JSONObject, LamiData>> COMPLEX_TYPE_GENERATOR;
     static {
         ImmutableMap.Builder<String, CheckedJSONExceptionFunction<JSONObject, LamiData>> complexTypeGenBuilder = ImmutableMap.builder();
-        complexTypeGenBuilder.put(LamiStrings.DATA_CLASS_BITRATE, (obj) -> new LamiBitrate(getJSONObjectLongValue(obj)));
-        complexTypeGenBuilder.put(LamiStrings.DATA_CLASS_CPU, (obj) -> new LamiCPU(obj.getLong(LamiStrings.ID)));
+        complexTypeGenBuilder.put(LamiStrings.DATA_CLASS_BITRATE, (obj) -> createFromNumberJsonObject(obj, false));
+        complexTypeGenBuilder.put(LamiStrings.DATA_CLASS_BOOLEAN, (obj) -> LamiBoolean.instance(obj.getBoolean(LamiStrings.VALUE)));
+        complexTypeGenBuilder.put(LamiStrings.DATA_CLASS_CPU, (obj) -> new LamiCPU(obj.getInt(LamiStrings.ID)));
         complexTypeGenBuilder.put(LamiStrings.DATA_CLASS_DISK, (obj) -> new LamiDisk(getJSONObjectStringName(obj)));
-        complexTypeGenBuilder.put(LamiStrings.DATA_CLASS_DURATION, (obj) -> new LamiDuration(getJSONObjectLongValue(obj)));
+        complexTypeGenBuilder.put(LamiStrings.DATA_CLASS_DURATION, (obj) -> createFromNumberJsonObject(obj, true));
         complexTypeGenBuilder.put(LamiStrings.DATA_CLASS_PART, (obj) -> new LamiDiskPartition(getJSONObjectStringName(obj)));
-        complexTypeGenBuilder.put(LamiStrings.DATA_CLASS_FD, (obj) -> new LamiFileDescriptor(obj.getLong(LamiStrings.FD)));
+        complexTypeGenBuilder.put(LamiStrings.DATA_CLASS_FD, (obj) -> new LamiFileDescriptor(obj.getInt(LamiStrings.FD)));
         complexTypeGenBuilder.put(LamiStrings.DATA_CLASS_NETIF, (obj) -> new LamiNetworkInterface(getJSONObjectStringName(obj)));
+
+        // TODO: Decide whether or not to decode as a long integer
+        //       here instead of forcing decoding as a double. It's possible
+        //       to decode as a long integer when the double value is in
+        //       the range of the long integer, and when the double value
+        //       is an integer (possibly after rounding).
+        complexTypeGenBuilder.put(LamiStrings.DATA_CLASS_NUMBER, (obj) -> createFromNumberJsonObject(obj, false));
+
         complexTypeGenBuilder.put(LamiStrings.DATA_CLASS_PATH, (obj) -> new LamiPath(checkNotNull(obj.getString(LamiStrings.PATH))));
         complexTypeGenBuilder.put(LamiStrings.DATA_CLASS_PROCESS, (obj) -> {
             String name = obj.optString(LamiStrings.NAME);
@@ -241,7 +260,7 @@ public abstract class LamiData {
 
             return new LamiProcess(name, pid, tid);
         });
-        complexTypeGenBuilder.put(LamiStrings.DATA_CLASS_RATIO, (obj) -> new LamiRatio(obj.getDouble(LamiStrings.VALUE)));
+        complexTypeGenBuilder.put(LamiStrings.DATA_CLASS_RATIO, (obj) -> createFromNumberJsonObject(obj, false));
         complexTypeGenBuilder.put(LamiStrings.DATA_CLASS_IRQ, (obj) -> {
             LamiIRQ.Type irqType = LamiIRQ.Type.HARD;
 
@@ -255,15 +274,31 @@ public abstract class LamiData {
 
             return new LamiIRQ(irqType, nr, name);
         });
-        complexTypeGenBuilder.put(LamiStrings.DATA_CLASS_SIZE, (obj) -> new LamiSize(getJSONObjectLongValue(obj)));
+        complexTypeGenBuilder.put(LamiStrings.DATA_CLASS_SIZE, (obj) -> createFromNumberJsonObject(obj, true));
+        complexTypeGenBuilder.put(LamiStrings.DATA_CLASS_STRING, (obj) -> new LamiString(obj.getString(LamiStrings.VALUE)));
         complexTypeGenBuilder.put(LamiStrings.DATA_CLASS_SYSCALL, (obj) -> new LamiSystemCall(getJSONObjectStringName(obj)));
         complexTypeGenBuilder.put(LamiStrings.DATA_CLASS_TIME_RANGE, (obj) -> {
-            long begin = obj.getLong(LamiStrings.BEGIN);
-            long end = obj.getLong(LamiStrings.END);
+            Object beginObj = checkNotNull(obj.get((LamiStrings.BEGIN)));
+            Object endObj = checkNotNull(obj.get(LamiStrings.END));
+            LamiTimestamp beginTs;
+            LamiTimestamp endTs;
 
-            return new LamiTimeRange(begin, end);
+            if ((beginObj instanceof Long || beginObj instanceof Integer) &&
+                    (endObj instanceof Long || endObj instanceof Integer)) {
+                // Backward-compatibility with pre-1.0 LAMI protocol
+                beginTs = new LamiTimestamp((Long) beginObj);
+                endTs = new LamiTimestamp((Long) endObj);
+            } else if (beginObj instanceof JSONObject && endObj instanceof JSONObject) {
+                // LAMI 1.0
+                beginTs = (LamiTimestamp) createFromJsonObject((JSONObject) beginObj);
+                endTs = (LamiTimestamp) createFromJsonObject((JSONObject) endObj);
+            } else {
+                throw new JSONException("Invalid time range object"); //$NON-NLS-1$
+            }
+
+            return new LamiTimeRange(beginTs, endTs);
         });
-        complexTypeGenBuilder.put(LamiStrings.DATA_CLASS_TIMESTAMP, (obj) -> new LamiTimestamp(getJSONObjectLongValue(obj)));
+        complexTypeGenBuilder.put(LamiStrings.DATA_CLASS_TIMESTAMP, (obj) -> createFromNumberJsonObject(obj, true));
         complexTypeGenBuilder.put(LamiStrings.DATA_CLASS_UNKNOWN, (obj) -> LamiUnknown.INSTANCE);
         COMPLEX_TYPE_GENERATOR = complexTypeGenBuilder.build();
     }
@@ -284,6 +319,78 @@ public abstract class LamiData {
         }
         /* We never return null in the implementations */
         return checkNotNull(func.apply(obj));
+    }
+
+    /**
+     * Gets a {@link Number} object from a specific property of a
+     * {@link JSONObject} object.
+     *
+     * @param obj
+     *              JSON object from which to get the number
+     * @param key
+     *              Key of the property to read
+     * @param useLong
+     *              {@code true} to decode the number as a long integer
+     * @return The decoded {@link Number} object
+     * @throws JSONException If the property is not found
+     */
+    private static @Nullable Number getNumberFromJsonObject(JSONObject obj,
+            String key, boolean useLong) throws JSONException {
+        Object numberObj = obj.opt(key);
+
+        if (numberObj == null) {
+            return null;
+        }
+
+        if (useLong) {
+            return obj.getLong(key);
+        }
+
+        return obj.getDouble(key);
+    }
+
+    /**
+     * Create a new {@link LamiNumber}-derived type from a {@link JSONObject}.
+     *
+     * @param obj
+     *            The JSON object having the LAMI number properties
+     * @param useLong
+     *            {@code true} to decode the number as a long integer
+     * @return A new corresponding LamiNumber object
+     * @throws JSONException
+     *             If the object type is not supported
+     */
+    private static LamiNumber createFromNumberJsonObject(JSONObject obj, boolean useLong) throws JSONException {
+        String dataClass = obj.optString(LamiStrings.CLASS);
+
+        if (dataClass == null) {
+            throw new JSONException("Cannot find data class"); //$NON-NLS-1$
+        }
+
+        // Get the value, if it's available
+        Number valueNumber = getNumberFromJsonObject(obj, LamiStrings.VALUE, useLong);
+
+        // Get the limits, if they're available
+        Number lowNumber = getNumberFromJsonObject(obj, LamiStrings.LOW, useLong);
+        Number highNumber = getNumberFromJsonObject(obj, LamiStrings.HIGH, useLong);
+
+        // Validate properties
+        if (valueNumber == null && (lowNumber == null || highNumber == null)) {
+            throw new JSONException("Invalid number object: no value, invalid limit"); //$NON-NLS-1$
+        } else if (lowNumber == null && highNumber != null) {
+            throw new JSONException("Invalid number object: high limit, but no low limit"); //$NON-NLS-1$
+        } else if (highNumber == null && lowNumber != null) {
+            throw new JSONException("Invalid number object: low limit, but no high limit"); //$NON-NLS-1$
+        }
+
+        // Create specific LAMI number object
+        LamiNumberFromValuesFunction func = NUMBER_TYPE_GENERATOR.get(dataClass);
+
+        if (func == null) {
+            throw new JSONException(String.format("Data class \"%s\" is not a number class", dataClass)); //$NON-NLS-1$
+        }
+
+        return func.create(lowNumber, valueNumber, highNumber);
     }
 
     /**

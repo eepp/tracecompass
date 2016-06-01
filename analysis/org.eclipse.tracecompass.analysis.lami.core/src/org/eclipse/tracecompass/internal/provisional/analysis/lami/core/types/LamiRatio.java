@@ -16,8 +16,20 @@ class LamiRatio extends LamiNumber {
         super(value);
     }
 
+    public LamiRatio(@Nullable Number low, @Nullable Number value, @Nullable Number high) {
+        super(low, value, high);
+    }
+
     @Override
     public @Nullable String toString() {
-        return String.format("%.2f", getValue() * 100); //$NON-NLS-1$
+        // TODO: The string should probably include the low and
+        //       high limits here.
+        Number value = getValue();
+
+        if (value != null) {
+            return String.format("%.2f", value.doubleValue() * 100); //$NON-NLS-1$
+        }
+
+        return null;
     }
 }

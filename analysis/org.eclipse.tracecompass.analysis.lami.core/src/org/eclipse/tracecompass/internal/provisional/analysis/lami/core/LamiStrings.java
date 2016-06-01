@@ -35,6 +35,8 @@ public interface LamiStrings {
 
     /* Data types */
     String VALUE = "value";
+    String LOW = "low";
+    String HIGH = "high";
     String ID = "id";
     String FD = "fd";
     String NAME = "name";
@@ -60,6 +62,9 @@ public interface LamiStrings {
 
     /* Data classes */
     String DATA_CLASS_UNKNOWN = "unknown";
+    String DATA_CLASS_NUMBER = "number";
+    String DATA_CLASS_BOOLEAN = "bool";
+    String DATA_CLASS_STRING = "string";
     String DATA_CLASS_RATIO = "ratio";
     String DATA_CLASS_TIMESTAMP = "timestamp";
     String DATA_CLASS_TIME_RANGE = "time-range";

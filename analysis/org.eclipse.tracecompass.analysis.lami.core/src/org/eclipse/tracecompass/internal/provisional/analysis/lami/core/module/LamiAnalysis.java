@@ -597,10 +597,8 @@ public class LamiAnalysis implements IOnDemandAnalysis {
                 JSONObject result = results.getJSONObject(i);
 
                 /* Parse the time-range */
-                JSONObject trObject = result.getJSONObject(LamiStrings.TIME_RANGE);
-                long start = trObject.getLong(LamiStrings.BEGIN);
-                long end = trObject.getLong(LamiStrings.END);
-                LamiTimeRange tr = new LamiTimeRange(start, end);
+                JSONObject trObject = checkNotNull(result.getJSONObject(LamiStrings.TIME_RANGE));
+                LamiTimeRange tr = (LamiTimeRange) LamiData.createFromObject(trObject);
 
                 /* Parse the table's class */
                 LamiTableClass tableClass;

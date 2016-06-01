@@ -59,6 +59,8 @@ public class LamiDurationAspect extends LamiTableEntryAspect {
         LamiData data = entry.getValue(fColIndex);
         if (data instanceof LamiDuration) {
             LamiDuration duration = (LamiDuration) data;
+
+            // TODO: Consider low and high limits here.
             return String.valueOf(duration.getValue());
         }
         return data.toString();
@@ -68,8 +70,14 @@ public class LamiDurationAspect extends LamiTableEntryAspect {
     public @Nullable Number resolveNumber(@NonNull LamiTableEntry entry) {
         LamiData data = entry.getValue(fColIndex);
         if (data instanceof LamiDuration) {
-            LamiDuration range = (LamiDuration) data;
-            return range.getValue();
+            LamiDuration duration = (LamiDuration) data;
+
+            // TODO: Consider low and high limits here.
+            Number durationValue = duration.getValue();
+
+            if (durationValue != null) {
+                return Double.valueOf(durationValue.doubleValue());
+            }
         }
         return null;
     }
