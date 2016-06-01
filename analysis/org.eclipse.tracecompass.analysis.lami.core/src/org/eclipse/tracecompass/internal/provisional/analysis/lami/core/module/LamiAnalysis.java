@@ -39,6 +39,9 @@ import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.tracecompass.internal.analysis.lami.core.Activator;
 import org.eclipse.tracecompass.internal.provisional.analysis.lami.core.LamiStrings;
+import org.eclipse.tracecompass.internal.provisional.analysis.lami.core.ShellUtils;
+import org.eclipse.tracecompass.internal.provisional.analysis.lami.core.aspect.LamiDurationAspect;
+import org.eclipse.tracecompass.internal.provisional.analysis.lami.core.aspect.LamiEmptyAspect;
 import org.eclipse.tracecompass.internal.provisional.analysis.lami.core.aspect.LamiGenericAspect;
 import org.eclipse.tracecompass.internal.provisional.analysis.lami.core.aspect.LamiIRQNameAspect;
 import org.eclipse.tracecompass.internal.provisional.analysis.lami.core.aspect.LamiIRQNumberAspect;
@@ -47,8 +50,6 @@ import org.eclipse.tracecompass.internal.provisional.analysis.lami.core.aspect.L
 import org.eclipse.tracecompass.internal.provisional.analysis.lami.core.aspect.LamiProcessNameAspect;
 import org.eclipse.tracecompass.internal.provisional.analysis.lami.core.aspect.LamiProcessPIDAspect;
 import org.eclipse.tracecompass.internal.provisional.analysis.lami.core.aspect.LamiProcessTIDAspect;
-import org.eclipse.tracecompass.internal.provisional.analysis.lami.core.aspect.LamiDurationAspect;
-import org.eclipse.tracecompass.internal.provisional.analysis.lami.core.aspect.LamiEmptyAspect;
 import org.eclipse.tracecompass.internal.provisional.analysis.lami.core.aspect.LamiTableEntryAspect;
 import org.eclipse.tracecompass.internal.provisional.analysis.lami.core.aspect.LamiTimeRangeBeginAspect;
 import org.eclipse.tracecompass.internal.provisional.analysis.lami.core.aspect.LamiTimeRangeDurationAspect;
@@ -509,18 +510,17 @@ public class LamiAnalysis implements IOnDemandAnalysis {
      */
     @Override
     public List<LamiResultTable> execute(ITmfTrace trace, @Nullable TmfTimeRange timeRange,
-            String extraParams, IProgressMonitor monitor) throws CoreException {
+            String extraParamsString, IProgressMonitor monitor) throws CoreException {
         /* Should have been called already, but in case it was not */
         initialize();
 
         final @NonNull String tracePath = checkNotNull(trace.getPath());
-        final @NonNull String[] splitParams = extraParams.trim().split(" "); //$NON-NLS-1$
+        final @NonNull String trimmedExtraParamsString = checkNotNull(extraParamsString.trim());
+        final List<String> extraParams = ShellUtils.commandStringToArgs(trimmedExtraParamsString);
 
         ImmutableList.Builder<String> builder = getBaseCommand(timeRange);
 
-        if (!extraParams.trim().equals("")) { //$NON-NLS-1$
-            builder.addAll(Arrays.asList(splitParams));
-        }
+        builder.addAll(extraParams);
         builder.add(tracePath);
         List<String> command = builder.build();
 
