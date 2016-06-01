@@ -20,12 +20,11 @@ import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.function.Predicate;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -79,19 +78,19 @@ import com.google.common.collect.Multimap;
  */
 public class LamiAnalysis implements IOnDemandAnalysis {
 
-    /** Maximum major version of the LAMI protocol we support */
-    private static final int MAX_SUPPORTED_MAJOR_VERSION = 1;
-
     private static final String DOUBLE_QUOTES = "\""; //$NON-NLS-1$
 
     /* Flags passed to the analysis scripts */
+    private static final String MI_VERSION_FLAG = "--mi-version"; //$NON-NLS-1$
+    private static final String TEST_COMPATIBILITY_FLAG = "--test-compatibility"; //$NON-NLS-1$
     private static final String METADATA_FLAG = "--metadata"; //$NON-NLS-1$
     private static final String PROGRESS_FLAG = "--output-progress"; //$NON-NLS-1$
     private static final String BEGIN_FLAG = "--begin"; //$NON-NLS-1$
     private static final String END_FLAG = "--end"; //$NON-NLS-1$
 
-    /** Log message for commands being run */
-    private static final String RUNNING_MESSAGE = "Running command:"; //$NON-NLS-1$
+    /* Log messages */
+    private static final String LOG_RUNNING_MESSAGE = "Running command:"; //$NON-NLS-1$
+    private static final String LOG_NO_MI_VERSION_FMT = "Command \"%s\" reports no specific MI version"; //$NON-NLS-1$
 
     private final List<String> fScriptCommand;
 
@@ -101,6 +100,9 @@ public class LamiAnalysis implements IOnDemandAnalysis {
      */
     private boolean fInitialized = false;
 
+    // 0 means pre 1.0 LAMI protocol
+    private int fMiVersion = 0;
+
     private boolean fIsAvailable;
     private final String fName;
     private final boolean fIsUserDefined;
@@ -109,7 +111,12 @@ public class LamiAnalysis implements IOnDemandAnalysis {
     /* Data defined by the analysis's metadata */
     private @Nullable String fAnalysisTitle;
     private @Nullable Map<String, LamiTableClass> fTableClasses;
-    private boolean fUseProgressOutput;
+
+    /* Available features depending on the MI version */
+    private static final int FEATURE_SUPPORTED = 1;
+    private static final int FEATURE_OUTPUT_PROGRESS = 2;
+    private static final int FEATURE_TEST_COMPATIBILITY = 4;
+    private int fFeatures = 0;
 
     /**
      * Constructor. To be called by implementing classes.
@@ -150,10 +157,89 @@ public class LamiAnalysis implements IOnDemandAnalysis {
         return fAppliesTo.test(trace);
     }
 
+    private boolean testCompatibility(ITmfTrace trace) {
+        final @NonNull String tracePath = checkNotNull(trace.getPath());
+
+        final List<String> commandLine = ImmutableList.<@NonNull String> builder()
+                .addAll(fScriptCommand)
+                .add(TEST_COMPATIBILITY_FLAG)
+                .add(tracePath)
+                .build();
+        final String output = getOutputFromCommand(commandLine);
+
+        return output != null;
+    }
+
     @Override
     public boolean canExecute(ITmfTrace trace) {
+        /*
+         * Make sure this analysis is initialized, i.e. that we
+         * validated its MI version and metadata.
+         */
         initialize();
-        return fIsAvailable;
+
+        /*
+         * If the initialization found that this is not a valid
+         * analysis a priori, it cannot be executed.
+         */
+        if (!fIsAvailable) {
+            return false;
+        }
+
+        if ((fFeatures & FEATURE_TEST_COMPATIBILITY) == 0) {
+            /*
+             * No support for dynamic compatibility testing: suppose this
+             * analysis can run on any trace.
+             */
+            return true;
+        }
+
+        /*
+         * Test compatibility since it's supported.
+         */
+        return testCompatibility(trace);
+    }
+
+    private void setFeatures() {
+        if (fMiVersion == 0) {
+            // Pre-1.0 LAMI protocol: supported for backward compatibility
+            fFeatures = FEATURE_SUPPORTED;
+            return;
+        }
+
+        if (fMiVersion >= 100 && fFeatures < 200) {
+            // LAMI 1.x
+            fFeatures = FEATURE_SUPPORTED | FEATURE_OUTPUT_PROGRESS | FEATURE_TEST_COMPATIBILITY;
+        }
+    }
+
+    private void readVersion() {
+        final String command = fScriptCommand.get(0);
+        final List<String> commandLine = ImmutableList.<@NonNull String> builder()
+                .add(command).add(MI_VERSION_FLAG).build();
+        final String output = getOutputFromCommand(commandLine);
+
+        if (output == null) {
+            Activator.instance().logInfo(String.format(LOG_NO_MI_VERSION_FMT, command));
+            return;
+        }
+
+        final String versionString = output.trim();
+
+        if (!versionString.matches("\\d+\\.\\d+")) { //$NON-NLS-1$
+            Activator.instance().logInfo(String.format(LOG_NO_MI_VERSION_FMT, command));
+            return;
+        }
+
+        final String logMsg = String.format("Command \"%s\" reports MI version %s", //$NON-NLS-1$
+                command, versionString);
+        Activator.instance().logInfo(logMsg);
+
+        final String[] parts = versionString.split("\\."); //$NON-NLS-1$
+        final int major = Integer.valueOf(parts[0]);
+        final int minor = Integer.valueOf(parts[1]);
+
+        fMiVersion = major * 100 + minor;
     }
 
     private static boolean executableExists(String name) {
@@ -178,10 +264,9 @@ public class LamiAnalysis implements IOnDemandAnalysis {
     @VisibleForTesting
     protected synchronized void initialize() {
         if (fInitialized) {
+            /* Already initialized */
             return;
         }
-
-        /* Do the analysis's initialization */
 
         /* Check if the script's expected executable is on the PATH */
         final String executable = fScriptCommand.get(0);
@@ -189,6 +274,24 @@ public class LamiAnalysis implements IOnDemandAnalysis {
 
         if (!executableExists) {
             /* Script is not found */
+            fIsAvailable = false;
+            fInitialized = true;
+            return;
+        }
+
+        /*
+         * Read the version, which also gives us an indication as
+         * to whether or not this executable supports LAMI 1.0.
+         */
+        readVersion();
+
+        /*
+         * Set the available features according to the MI version.
+         */
+        setFeatures();
+
+        if ((fFeatures & FEATURE_SUPPORTED) == 0) {
+            // Unsupported LAMI version
             fIsAvailable = false;
             fInitialized = true;
             return;
@@ -214,9 +317,6 @@ public class LamiAnalysis implements IOnDemandAnalysis {
          */
         List<String> command = ImmutableList.<@NonNull String> builder()
                 .addAll(fScriptCommand).add(METADATA_FLAG).build();
-
-        Activator.instance().logInfo(RUNNING_MESSAGE + ' ' + command.toString());
-
         String output = getOutputFromCommand(command);
         if (output == null || output.isEmpty()) {
             return false;
@@ -272,21 +372,6 @@ public class LamiAnalysis implements IOnDemandAnalysis {
         try {
             JSONObject obj = new JSONObject(output);
             fAnalysisTitle = obj.getString(LamiStrings.TITLE);
-
-            /* Very early scripts may not contain the "mi-version" */
-            JSONObject miVersion = obj.optJSONObject(LamiStrings.MI_VERSION);
-            if (miVersion == null) {
-                /* Before version 0.1 */
-                fUseProgressOutput = false;
-            } else {
-                int majorVersion = miVersion.getInt(LamiStrings.MAJOR);
-                if (majorVersion <= MAX_SUPPORTED_MAJOR_VERSION) {
-                    fUseProgressOutput = true;
-                } else {
-                    /* Unknown version, we do not support it */
-                    return false;
-                }
-            }
 
             JSONObject tableClasses = obj.getJSONObject(LamiStrings.TABLE_CLASSES);
             @NonNull String[] tableClassNames = checkNotNullContents(JSONObject.getNames(tableClasses));
@@ -486,7 +571,7 @@ public class LamiAnalysis implements IOnDemandAnalysis {
         ImmutableList.Builder<String> builder = ImmutableList.builder();
         builder.addAll(fScriptCommand);
 
-        if (fUseProgressOutput) {
+        if ((fFeatures & FEATURE_OUTPUT_PROGRESS) != 0) {
             builder.add(PROGRESS_FLAG);
         }
 
@@ -523,8 +608,6 @@ public class LamiAnalysis implements IOnDemandAnalysis {
         builder.addAll(extraParams);
         builder.add(tracePath);
         List<String> command = builder.build();
-
-        Activator.instance().logInfo(RUNNING_MESSAGE + ' ' + command.toString());
         String output = getResultsFromCommand(command, monitor);
 
         if (output.isEmpty()) {
@@ -698,6 +781,8 @@ public class LamiAnalysis implements IOnDemandAnalysis {
      */
     @VisibleForTesting
     protected @Nullable String getOutputFromCommand(List<String> command) {
+        Activator.instance().logInfo(LOG_RUNNING_MESSAGE + ' ' + command.toString());
+
         try {
             ProcessBuilder builder = new ProcessBuilder(command);
             builder.redirectErrorStream(true);
