@@ -16,9 +16,12 @@ package org.eclipse.tracecompass.tmf.ctf.core.trace;
 
 import static org.eclipse.tracecompass.common.core.NonNullUtils.checkNotNull;
 
+import java.io.File;
 import java.nio.BufferOverflowException;
 import java.nio.ByteBuffer;
+import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -30,9 +33,11 @@ import java.util.Set;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jdt.annotation.NonNull;
+import org.eclipse.tracecompass.common.core.process.ProcessUtils;
 import org.eclipse.tracecompass.ctf.core.CTFException;
 import org.eclipse.tracecompass.ctf.core.event.CTFClock;
 import org.eclipse.tracecompass.ctf.core.event.IEventDeclaration;
@@ -48,11 +53,12 @@ import org.eclipse.tracecompass.internal.tmf.ctf.core.trace.iterator.CtfIterator
 import org.eclipse.tracecompass.tmf.core.event.ITmfEvent;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEventField;
 import org.eclipse.tracecompass.tmf.core.event.TmfEventField;
-import org.eclipse.tracecompass.tmf.core.event.aspect.TmfBaseAspects;
 import org.eclipse.tracecompass.tmf.core.event.aspect.ITmfEventAspect;
+import org.eclipse.tracecompass.tmf.core.event.aspect.TmfBaseAspects;
 import org.eclipse.tracecompass.tmf.core.exceptions.TmfTraceException;
 import org.eclipse.tracecompass.tmf.core.project.model.ITmfPropertiesProvider;
 import org.eclipse.tracecompass.tmf.core.timestamp.ITmfTimestamp;
+import org.eclipse.tracecompass.tmf.core.timestamp.TmfTimeRange;
 import org.eclipse.tracecompass.tmf.core.timestamp.TmfTimestamp;
 import org.eclipse.tracecompass.tmf.core.trace.ITmfContext;
 import org.eclipse.tracecompass.tmf.core.trace.ITmfTraceKnownSize;
@@ -65,6 +71,7 @@ import org.eclipse.tracecompass.tmf.core.trace.indexer.TmfBTreeTraceIndexer;
 import org.eclipse.tracecompass.tmf.core.trace.indexer.checkpoint.ITmfCheckpoint;
 import org.eclipse.tracecompass.tmf.core.trace.indexer.checkpoint.TmfCheckpoint;
 import org.eclipse.tracecompass.tmf.core.trace.location.ITmfLocation;
+import org.eclipse.tracecompass.tmf.core.trace.trim.ITmfTrimmableTrace;
 import org.eclipse.tracecompass.tmf.ctf.core.CtfConstants;
 import org.eclipse.tracecompass.tmf.ctf.core.context.CtfLocation;
 import org.eclipse.tracecompass.tmf.ctf.core.context.CtfLocationInfo;
@@ -86,7 +93,7 @@ import com.google.common.collect.ImmutableSet;
  */
 public class CtfTmfTrace extends TmfTrace
         implements ITmfPropertiesProvider, ITmfPersistentlyIndexable,
-        ITmfTraceWithPreDefinedEvents, ITmfTraceKnownSize {
+        ITmfTraceWithPreDefinedEvents, ITmfTraceKnownSize, ITmfTrimmableTrace {
 
     // -------------------------------------------
     // Constants
@@ -740,4 +747,24 @@ public class CtfTmfTrace extends TmfTrace
     public int progress() {
         return (int) (getNbEvents() / REDUCTION_FACTOR);
     }
+
+    /**
+     * @since 2.2
+     */
+    @Override
+    public void trim(@NonNull TmfTimeRange range, @NonNull Path destinationPath, @NonNull IProgressMonitor monitor) throws CoreException {
+        /* Trim and save the new trace */
+        // TODO Just doing "cp" for now, will use Babeltrace to cut the trace
+        String originPath = getPath();
+        if (!originPath.endsWith(File.separator)) {
+            originPath = originPath + File.separator;
+        }
+        List<@NonNull String> command = Arrays.asList("bash", "-c", "cp -R " + originPath + "* " + destinationPath.toString()); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
+        ProcessUtils.getOutputFromCommandCancellable(command,
+                monitor,
+                "Invoking external tool",
+                // We don't care about the output atm
+                (r, m) -> Collections.emptyList());
+    }
+
 }
