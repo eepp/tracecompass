@@ -74,6 +74,7 @@ public abstract class TmfStateSystemAnalysisModule extends TmfAbstractAnalysisMo
     private boolean fInitializationSucceeded;
 
     private volatile @Nullable ITmfStateProvider fStateProvider;
+    private @Nullable Integer fProviderVersion = null;
 
     /**
      * State system backend types
@@ -160,6 +161,16 @@ public abstract class TmfStateSystemAnalysisModule extends TmfAbstractAnalysisMo
     }
 
     /**
+     * Return the version of this module's state provider.
+     *
+     * @return The provider's version, or null if the provider is not set yet
+     * @since 2.2
+     */
+    public @Nullable Integer getProviderVersion() {
+        return fProviderVersion;
+    }
+
+    /**
      * @since 2.0
      */
     @Override
@@ -203,6 +214,7 @@ public abstract class TmfStateSystemAnalysisModule extends TmfAbstractAnalysisMo
     protected boolean executeAnalysis(@Nullable final  IProgressMonitor monitor) {
         IProgressMonitor mon = (monitor == null ? new NullProgressMonitor() : monitor);
         final ITmfStateProvider provider = createStateProvider();
+        fProviderVersion = provider.getVersion();
 
         String id = getId();
 
