@@ -105,7 +105,7 @@ public class CustomStateValueStub extends CustomStateValue {
     }
 
     @Override
-    protected @NonNull Byte getCustomTypeId() {
+    public @NonNull Byte getCustomTypeId() {
         return CUSTOM_TYPE_ID;
     }
 

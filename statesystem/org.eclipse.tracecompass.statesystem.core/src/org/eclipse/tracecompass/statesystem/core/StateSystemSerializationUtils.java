@@ -11,20 +11,29 @@ package org.eclipse.tracecompass.statesystem.core;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.Writer;
+import java.nio.ByteBuffer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.Arrays;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.eclipse.tracecompass.internal.provisional.statesystem.core.statevalue.CustomStateValue;
+import org.eclipse.tracecompass.internal.provisional.statesystem.core.statevalue.ISafeByteBufferWriter;
+import org.eclipse.tracecompass.internal.provisional.statesystem.core.statevalue.SafeByteBufferFactory;
 import org.eclipse.tracecompass.statesystem.core.exceptions.StateSystemDisposedException;
 import org.eclipse.tracecompass.statesystem.core.interval.ITmfStateInterval;
 import org.eclipse.tracecompass.statesystem.core.statevalue.ITmfStateValue;
+import org.json.JSONException;
+import org.json.JSONWriter;
 
+import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
 
 /**
@@ -142,6 +151,13 @@ public final class StateSystemSerializationUtils {
         }
     }
 
+    private static final String SD_VERSION_KEY = "statedump-version"; //$NON-NLS-1$
+    private static final String STATES_ARRAY_KEY = "states"; //$NON-NLS-1$
+
+    private static final String ATTRIBUTE_KEY = "attribute"; //$NON-NLS-1$
+    private static final String TYPE_KEY = "type"; //$NON-NLS-1$
+    private static final String STATE_VALUE_KEY = "state-value"; //$NON-NLS-1$
+
     /**
      * Save a statedump at the given location.
      *
@@ -171,9 +187,84 @@ public final class StateSystemSerializationUtils {
         }
         Files.createFile(filePath);
 
-        try (ObjectOutputStream out = new ObjectOutputStream(Files.newOutputStream(filePath, StandardOpenOption.WRITE))) {
-            out.writeInt(STATEDUMP_FORMAT_VERSION);
-            out.writeObject(statedump);
+        try (Writer bw = Files.newBufferedWriter(filePath, Charsets.UTF_8)) {
+            JSONWriter writer = new JSONWriter(bw);
+            writer.object()
+                    .key(SD_VERSION_KEY)
+                    .value(statedump.getVersion())
+                    .endObject();
+
+            writer.key(STATES_ARRAY_KEY);
+            writer.array();
+            for (int i = 0; i < statedump.getAttributes().size(); i++) {
+                String[] attribute = statedump.getAttributes().get(i);
+                ITmfStateValue sv = statedump.getStates().get(i);
+
+                writer.object()
+                        .key(ATTRIBUTE_KEY)
+                        .value(Arrays.toString(attribute)); // kek
+
+                writer.key(TYPE_KEY);
+                switch (sv.getType()) {
+                case CUSTOM:
+                    writer.value("custom");
+
+                    CustomStateValue customValue = (CustomStateValue) sv;
+
+                    writer.key(STATE_VALUE_KEY);
+                    writer.key("custom-value-type");
+                    writer.value(customValue.getCustomTypeId());
+
+                    /* Custom state values are serialized via a ByteBuffer */
+                    int size = customValue.getSerializedSize();
+                    ByteBuffer buffer = ByteBuffer.allocate(size);
+                    buffer.clear();
+                    ISafeByteBufferWriter sbbw = SafeByteBufferFactory.wrapWriter(buffer, size);
+                    customValue.serialize(sbbw);
+                    byte[] serializedValue = buffer.array();
+
+                    String base64serializedValue = Base64.getEncoder().encodeToString(serializedValue);
+                    writer.key(STATE_VALUE_KEY);
+                    writer.value(base64serializedValue);
+                    break;
+                case DOUBLE:
+                    writer.value("double");
+                    writer.key(STATE_VALUE_KEY);
+                    writer.value(sv.unboxDouble());
+                    break;
+                case INTEGER:
+                    writer.value("int");
+                    writer.key(STATE_VALUE_KEY);
+                    writer.value(sv.unboxInt());
+                    break;
+                case LONG:
+                    writer.value("long");
+                    writer.key(STATE_VALUE_KEY);
+                    writer.value(sv.unboxLong());
+                    break;
+                case NULL:
+                    writer.value("null");
+                    break;
+                case STRING:
+                    writer.value("string");
+                    writer.key(STATE_VALUE_KEY);
+                    writer.value(sv.unboxStr());
+                    break;
+                default:
+                    writer.value("unknown");
+                    writer.key(STATE_VALUE_KEY);
+                    writer.value(sv.toString());
+                    break;
+                }
+
+                writer.endObject();
+            }
+            writer.endArray();
+
+            bw.flush();
+
+        } catch (JSONException e) {
+            throw new IOException(e);
         }
     }
 

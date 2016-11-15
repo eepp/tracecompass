@@ -137,7 +137,7 @@ public abstract class CustomStateValue extends TmfStateValue {
      *
      * @return the custom type ID
      */
-    protected abstract Byte getCustomTypeId();
+    public abstract Byte getCustomTypeId();
 
     /**
      * Serialize this state value into the byte buffer. This method should only
