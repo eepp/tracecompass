@@ -192,7 +192,7 @@ public class TrimTraceHandler extends AbstractHandler {
                         }
 
                         Statedump statedump = new Statedump(ss, dumpTime, version);
-                        StateSystemSerializationUtils.saveStatedump(tracePath, ss.getSSID(), statedump);
+                        StateSystemSerializationUtils.dumpState(tracePath, ss.getSSID(), statedump);
                     }
 
                 } catch (IOException e) {

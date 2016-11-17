@@ -63,9 +63,9 @@ public class SerializationUtilsTest {
                     TmfStateValue.newValueInt(1));
 
             Statedump statedump = new Statedump(initialAttributes, initialValues, version);
-            StateSystemSerializationUtils.saveStatedump(dir, ssid, statedump);
+            StateSystemSerializationUtils.dumpState(dir, ssid, statedump);
 
-            Statedump results = StateSystemSerializationUtils.retrieveStatedump(dir, ssid);
+            Statedump results = StateSystemSerializationUtils.loadState(dir, ssid);
             assertNotNull(results);
 
             assertEquals(version, results.getVersion());

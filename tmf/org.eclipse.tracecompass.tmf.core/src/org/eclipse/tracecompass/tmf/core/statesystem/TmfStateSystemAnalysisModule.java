@@ -514,7 +514,7 @@ public abstract class TmfStateSystemAnalysisModule extends TmfAbstractAnalysisMo
         }
         final long startTime = trace.getStartTime().toNanos();
 
-        Statedump sd = StateSystemSerializationUtils.retrieveStatedump(Paths.get(trace.getPath()), ss.getSSID());
+        Statedump sd = StateSystemSerializationUtils.loadState(Paths.get(trace.getPath()), ss.getSSID());
         if (sd == null) {
             /* No statedump found, nothing to pre-load */
             return;
